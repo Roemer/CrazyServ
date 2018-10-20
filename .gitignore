@@ -3,3 +3,9 @@
 
 # Python virtual environment
 crazyserv-env/
+
+# Python cache
+__pycache__/
+
+# Crazyflie cache
+cache/

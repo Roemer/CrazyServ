@@ -1,73 +1,17 @@
-import threading
 from flask import Flask, request, jsonify, abort
-
-##############################
-# Classes
-##############################
-
-
-class Groups:
-    """ Class that handles the list of groups. """
-
-    def __init__(self):
-        self.groups = []
-        self.lock = threading.Lock()
-
-    def getGroup(self, groupId):
-        """ Returns the group with the given id or None if such a group does not exist. """
-        self.lock.acquire()
-        try:
-            for group in self.groups:
-                if group.id == groupId:
-                    # Found it, return it
-                    return group
-            return None
-        finally:
-            self.lock.release()
-
-    def getOrAddGroup(self, groupId):
-        """ Gets or creates the group with the given id. """
-        self.lock.acquire()
-        try:
-            # Search for the group with the given id
-            for group in self.groups:
-                if group.id == groupId:
-                    # Found it, return it
-                    return group
-            # Create and add it
-            group = Group(groupId)
-            self.groups.append(group)
-            return group
-        finally:
-            self.lock.release()
-
-
-class Drone:
-    """ Class that handles a drone. """
-
-    def __init__(self):
-        self.x = 0
-
-
-class Group:
-    """ Class that handles a group. """
-
-    def __init__(self, id):
-        self.id = id
-        self.drones = []
-
-    def addDrone(self, drone):
-        self.drones.append(drone)
-
-    def removeDrone(self, drone):
-        self.drones.remove(drone)
-
+import cflib
+from crazyserv import drone
+from crazyserv.drone import Drone
+from crazyserv import group
+from crazyserv.group import Group
+from crazyserv import groupmanager
+from crazyserv.groupmanager import GroupManager
 
 ##############################
 # Globals (cough)
 ##############################
 app = Flask(__name__)
-groups = Groups()
+groupManager = GroupManager()
 
 ##############################
 # Route Definitions
@@ -81,22 +25,62 @@ def hello():
 
 @app.route("/api/<groupId>/status")
 def status(groupId):
-    global groups
-    group = groups.getGroup(groupId)
+    global groupManager
+    group = groupManager.getGroup(groupId)
     if group is None:
-        abort(404, description="Group not found")
+        abort(404, description="Group not found.")
+        return
+    for drone in group.drones:
+        print(drone.var_x)
     return jsonify({"group": group.id})
 
 
 @app.route("/api/<groupId>/<droneId>/connect")
 def connect(groupId, droneId):
-    global groups
-    group = groups.getOrAddGroup(groupId)
+    global groupManager
+    # Try to create and connect to the drone
+    droneLinkUri = "radio://0/" + droneId + "/2M"
+    drone = Drone(droneLinkUri)
+    drone.connectSync()
+    # Check if the connection to the drone was successfull
+    if (not drone.is_connected):
+        # Connection failed
+        abort(500, "Could not connect to drone.")
+        return
+    # Connection successfull, add the drone to the group
+    drone.enableHighLevelCommander()
+    group = groupManager.getOrAddGroup(groupId)
+    group.addDrone(drone)
     return jsonify({'group': group.id})
+
+@app.route("/api/<groupId>/<droneId>/takeoff")
+def takeoff(groupId, droneId):
+    z = request.args.get("z")
+    v = request.args.get("v")
+    for group in groupManager.groups:
+        for drone in group.drones:
+            # TODO: Search correct drone
+            drone.takeoff(1, 1)
+            return jsonify({'expectedDuration': 1})
+
+@app.route("/api/<groupId>/<droneId>/land")
+def land(groupId, droneId):
+    z = request.args.get("z")
+    v = request.args.get("v")
+    for group in groupManager.groups:
+        for drone in group.drones:
+            # TODO: Search correct drone
+            drone.land(1, 1)
+            return jsonify({'expectedDuration': 1})
 
 
 @app.route('/shutdown', methods=['GET'])
 def shutdown():
+    # Cleanup
+    for group in groupManager.groups:
+        for drone in group.drones:
+            drone.disconnect()
+    # Shutdown the server
     shutdown_server()
     return 'Server shutting down...'
 
@@ -113,6 +97,9 @@ def shutdown_server():
 ##############################
 if __name__ == '__main__':
     port = 5000
+    # Initialize the low-level drivers (don't list the debug drivers)
+    cflib.crtp.init_drivers(enable_debug_driver=False)
+    # Start the web server
     app.run(debug=True, port=port)
 
 '''
