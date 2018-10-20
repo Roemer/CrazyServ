@@ -53,6 +53,7 @@ def connect(groupId, droneId):
     group.addDrone(drone)
     return jsonify({'group': group.id})
 
+
 @app.route("/api/<groupId>/<droneId>/takeoff")
 def takeoff(groupId, droneId):
     z = request.args.get("z")
@@ -60,8 +61,9 @@ def takeoff(groupId, droneId):
     for group in groupManager.groups:
         for drone in group.drones:
             # TODO: Search correct drone
-            drone.takeoff(1, 1)
+            drone.takeoff(z, 1)
             return jsonify({'expectedDuration': 1})
+
 
 @app.route("/api/<groupId>/<droneId>/land")
 def land(groupId, droneId):
@@ -70,7 +72,30 @@ def land(groupId, droneId):
     for group in groupManager.groups:
         for drone in group.drones:
             # TODO: Search correct drone
-            drone.land(1, 1)
+            drone.land(z, 1)
+            return jsonify({'expectedDuration': 1})
+
+
+@app.route("/api/<groupId>/<droneId>/stop")
+def stop(groupId, droneId):
+    for group in groupManager.groups:
+        for drone in group.drones:
+            # TODO: Search correct drone
+            drone.stop()
+            return '', 200
+
+
+@app.route("/api/<groupId>/<droneId>/goto")
+def goto(groupId, droneId):
+    x = request.args.get("x")
+    y = request.args.get("y")
+    z = request.args.get("z")
+    yaw = request.args.get("yaw")
+    v = request.args.get("v")
+    for group in groupManager.groups:
+        for drone in group.drones:
+            # TODO: Search correct drone
+            drone.go_to(x, y, z, yaw, 1)
             return jsonify({'expectedDuration': 1})
 
 
@@ -103,27 +128,6 @@ if __name__ == '__main__':
     app.run(debug=True, port=port)
 
 '''
-# Base API
-/api/<groupId>
- 
-# Take Off
-/<droneId>/takeoff?z=<z>&v=<v>
-# Response
-Expected duration
- 
-# Land
-/<droneId>/land?z=<z>&v=<v>
-# Response
-Expected duration
- 
-# Stop
-/<droneId>/stop
- 
-# Go to
-/<droneId>/goto?x=<x>&y=<y>&z=<z>&yaw=<yaw>&v=<v>
-# Response
-Expected duration
- 
 # Status
 /status
 # Response
@@ -139,9 +143,4 @@ Expected duration
         "varz": 2,
     }
 ]
- 
-# Connect
-/<droneId>/connect?group=<group>
-# Response
-Ok, Not ok, Not found
 '''
