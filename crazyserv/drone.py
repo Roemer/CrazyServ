@@ -1,26 +1,29 @@
 import time
 from threading import Event
+import numpy as np
+import json
 
 from cflib.crazyflie import Crazyflie
 from cflib.crazyflie.log import LogConfig
 
 
 class Drone:
-    """ Represents a CrazyFlie drone """
+    """Represents a CrazyFlie drone."""
 
-    def __init__(self, link_uri):
-        """ Initializes the drone with the given uri """
+    def __init__(self, drone_id, bandwidth="2M"):
+        """ Initializes the drone with the given uri."""
 
         # Initialize public variables
+        self.id = drone_id
         self.var_x = 0
         self.var_y = 0
         self.var_z = 0
         self.pos_x = 0
         self.pos_y = 0
         self.pos_z = 0
+        self.yaw = 0
         self.is_connected = False
-        self.link_uri = link_uri
-        self.link_uri = 'radio://0/80/2M'
+        self.link_uri = "radio://0/" + drone_id + "/" + bandwidth
 
         self._connect_event = Event()
 
@@ -41,44 +44,77 @@ class Drone:
         self._lg_stab.add_variable('kalman.stateX', 'float')
         self._lg_stab.add_variable('kalman.stateY', 'float')
         self._lg_stab.add_variable('kalman.stateZ', 'float')
+        # TODO: Add yaw
 
     def connect(self):
-        """ Connects to the Crazyflie asynchronously """
+        """Connects to the Crazyflie asynchronously."""
         self._connect_crazyflie()
 
-    def connectSync(self):
-        """ Connects to the Crazyflie synchronously """
+    def connect_sync(self):
+        """Connects to the Crazyflie synchronously."""
         self._connect_crazyflie()
         self._connect_event.wait()
 
     def disconnect(self):
-        """ Disconnects from the Crazyflie and stops all logging """
+        """Disconnects from the Crazyflie and stops all logging."""
         self._disconnect_crazyflie()
 
-    def enableHighLevelCommander(self):
+    def enable_high_level_commander(self):
+        """Enables the drones high level commander."""
         self._cf.param.set_value('commander.enHighLevel', '1')
         time.sleep(0.1)
 
-    def takeoff(self, absolute_height_m, duration_s):
+    def get_status(self):
+        """Gets various information of the drone."""
+        return json.dumps({
+            "id": self.id,
+            "var_x": self.var_x,
+            "var_y": self.var_y,
+            "var_z": self.var_z,
+            "x": self.pos_x,
+            "y": self.pos_y,
+            "z": self.pos_z,
+            "yaw": self.yaw
+        })
+
+    def reset_estimator(self):
+        """Resets the position estimates."""
+        self._cf.param.set_value('kalman.resetEstimation', '1')
+        time.sleep(0.1)
+        self._cf.param.set_value('kalman.resetEstimation', '0')
+        time.sleep(2.0)
+        # TODO: wait_for_position_estimator(cf)
+
+    def takeoff(self, absolute_height_m, velocity):
+        duration_s = self._convert_velocity_to_time(absolute_height_m, velocity)
         self._cf.high_level_commander.takeoff(absolute_height_m, duration_s)
+        return duration_s
 
-    def takeoffSync(self, absolute_height_m, duration_s):
-        self.takeoff(absolute_height_m, duration_s)
+    def takeoff_sync(self, absolute_height_m, velocity):
+        duration_s = self.takeoff(absolute_height_m, velocity)
         time.sleep(duration_s)
+        return duration_s
 
-    def land(self, absolute_height_m, duration_s):
+    def land(self, absolute_height_m, velocity):
+        duration_s = self._convert_velocity_to_time(absolute_height_m, velocity)
         self._cf.high_level_commander.land(absolute_height_m, duration_s)
+        return duration_s
 
-    def landSync(self, absolute_height_m, duration_s):
-        self.land(absolute_height_m, duration_s)
+    def land_sync(self, absolute_height_m, velocity):
+        duration_s = self.land(absolute_height_m, velocity)
         time.sleep(duration_s)
+        return duration_s
 
-    def go_to(self, x, y, z, yaw, duration_s, relative=False):
+    def go_to(self, x, y, z, yaw, velocity, relative=False):
+        distance = self._calculate_distance(x, y, z, relative)
+        duration_s = self._convert_velocity_to_time(distance, velocity)
         self._cf.high_level_commander.go_to(x, y, z, yaw, duration_s, relative)
+        return duration_s
 
-    def go_toSync(self, x, y, z, yaw, duration_s, relative=False):
-        self.go_to(x, y, z, yaw, duration_s, relative)
+    def go_to_sync(self, x, y, z, yaw, velocity, relative=False):
+        duration_s = self.go_to(x, y, z, yaw, velocity, relative)
         time.sleep(duration_s)
+        return duration_s
 
     def stop(self):
         self._cf.high_level_commander.stop()
@@ -97,7 +133,7 @@ class Drone:
         self._cf.close_link()
 
     def _connected(self, link_uri):
-        """ This callback is called when the Crazyflie has been connected and the TOCs have been downloaded. """
+        """This callback is called when the Crazyflie has been connected and the TOCs have been downloaded."""
         print('Connected to %s' % link_uri)
         # Add the logger
         self._cf.log.add_config(self._lg_stab)
@@ -112,28 +148,27 @@ class Drone:
         self.is_connected = True
 
     def _connection_failed(self, link_uri, msg):
-        """Callback when the initial connection fails """
+        """Callback when the initial connection fails."""
         print('Connection to %s failed: %s' % (link_uri, msg))
         # Set the connected event
         self._connect_event.set()
 
     def _disconnected(self, link_uri):
-        """Callback when the Crazyflie is disconnected """
+        """Callback when the Crazyflie is disconnected."""
         print('Disconnected from %s' % link_uri)
 
     def _connection_lost(self, link_uri, msg):
-        """Callback when the connection is lost after a connection has been made """
+        """Callback when the connection is lost after a connection has been made."""
         print('Connection to %s lost: %s' % (link_uri, msg))
         self._connect_event.set()
         self.is_connected = False
 
     def _stab_log_error(self, logconf, msg):
-        """Callback from the log API when an error occurs"""
+        """Callback from the log API when an error occurs."""
         print('Error when logging %s: %s' % (logconf.name, msg))
 
     def _stab_log_data(self, timestamp, data, logconf):
-        """Callback from the log API when data arrives"""
-        #print('[%s][%d][%s]: %s' % (logconf.cf.link_uri, timestamp, logconf.name, data))
+        """Callback from the log API when data arrives."""
         self.var_x = data['kalman.varPX']
         self.var_y = data['kalman.varPY']
         self.var_z = data['kalman.varPZ']
@@ -152,7 +187,20 @@ class Drone:
         time.sleep(0.1)
 
     def _keep_setpoint(self, roll, pitch, yawrate, thrust, keeptime):
+        """Keeps the drone at the given setpoint for the given amount of time."""
         while keeptime > 0:
             self._cf.commander.send_setpoint(roll, pitch, yawrate, thrust)
             keeptime -= 0.1
             time.sleep(0.1)
+
+    def _convert_velocity_to_time(self, distance, velocity, max_velocity=0.2):
+        """Converts a distance and a velocity to a time."""
+        needed_time = float(distance) / min(velocity, max_velocity)
+        return needed_time
+
+    def _calculate_distance(self, x, y, z, relative=False):
+        """Calculates the distance from the drone or the zero position (relative) to a given point in space."""
+        start_x = 0 if relative else self.pos_x
+        start_y = 0 if relative else self.pos_y
+        start_z = 0 if relative else self.pos_z
+        return np.sqrt((x - start_x) ** 2 + (y - start_y) ** 2 + (z - start_z) ** 2)
