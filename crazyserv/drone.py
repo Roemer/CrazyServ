@@ -1,10 +1,10 @@
 import time
 from threading import Event
 import numpy as np
-import json
 
 from cflib.crazyflie import Crazyflie
 from cflib.crazyflie.log import LogConfig
+from cflib.utils.callbacks import Caller
 
 
 class Drone:
@@ -15,13 +15,13 @@ class Drone:
 
         # Initialize public variables
         self.id = drone_id
-        self.var_x = 0
-        self.var_y = 0
-        self.var_z = 0
-        self.pos_x = 0
-        self.pos_y = 0
-        self.pos_z = 0
-        self.yaw = 0
+        self.var_x: float = 0
+        self.var_y: float = 0
+        self.var_z: float = 0
+        self.pos_x: float = 0
+        self.pos_y: float = 0
+        self.pos_z: float = 0
+        self.yaw: float = 0
         self.is_connected = False
         self.link_uri = "radio://0/" + drone_id + "/" + bandwidth
 
@@ -36,15 +36,18 @@ class Drone:
         self._cf.connection_failed.add_callback(self._connection_failed)
         self._cf.connection_lost.add_callback(self._connection_lost)
 
+        # Initialize events
+        self.drone_lost = Caller()
+
         # Define the log configuration
-        self._lg_stab = LogConfig(name='Kalman', period_in_ms=500)
+        self._lg_stab = LogConfig(name='DroneLog', period_in_ms=500)
         self._lg_stab.add_variable('kalman.varPX', 'float')
         self._lg_stab.add_variable('kalman.varPY', 'float')
         self._lg_stab.add_variable('kalman.varPZ', 'float')
         self._lg_stab.add_variable('kalman.stateX', 'float')
         self._lg_stab.add_variable('kalman.stateY', 'float')
         self._lg_stab.add_variable('kalman.stateZ', 'float')
-        # TODO: Add yaw
+        self._lg_stab.add_variable('stabilizer.yaw', 'float')
 
     def connect(self):
         """Connects to the Crazyflie asynchronously."""
@@ -64,9 +67,9 @@ class Drone:
         self._cf.param.set_value('commander.enHighLevel', '1')
         time.sleep(0.1)
 
-    def get_status(self):
+    def get_status(self) -> str:
         """Gets various information of the drone."""
-        return json.dumps({
+        return {
             "id": self.id,
             "var_x": self.var_x,
             "var_y": self.var_y,
@@ -75,43 +78,45 @@ class Drone:
             "y": self.pos_y,
             "z": self.pos_z,
             "yaw": self.yaw
-        })
+        }
 
-    def reset_estimator(self):
+    def reset_estimator(self) -> bool:
         """Resets the position estimates."""
         self._cf.param.set_value('kalman.resetEstimation', '1')
         time.sleep(0.1)
         self._cf.param.set_value('kalman.resetEstimation', '0')
         time.sleep(2.0)
         # TODO: wait_for_position_estimator(cf)
+        return True
 
-    def takeoff(self, absolute_height_m, velocity):
+    def takeoff(self, absolute_height_m, velocity) -> float:
+        self.reset_estimator()
         duration_s = self._convert_velocity_to_time(absolute_height_m, velocity)
         self._cf.high_level_commander.takeoff(absolute_height_m, duration_s)
         return duration_s
 
-    def takeoff_sync(self, absolute_height_m, velocity):
+    def takeoff_sync(self, absolute_height_m, velocity) -> float:
         duration_s = self.takeoff(absolute_height_m, velocity)
         time.sleep(duration_s)
         return duration_s
 
-    def land(self, absolute_height_m, velocity):
+    def land(self, absolute_height_m, velocity) -> float:
         duration_s = self._convert_velocity_to_time(absolute_height_m, velocity)
         self._cf.high_level_commander.land(absolute_height_m, duration_s)
         return duration_s
 
-    def land_sync(self, absolute_height_m, velocity):
+    def land_sync(self, absolute_height_m, velocity) -> float:
         duration_s = self.land(absolute_height_m, velocity)
         time.sleep(duration_s)
         return duration_s
 
-    def go_to(self, x, y, z, yaw, velocity, relative=False):
+    def go_to(self, x, y, z, yaw, velocity, relative=False) -> float:
         distance = self._calculate_distance(x, y, z, relative)
         duration_s = self._convert_velocity_to_time(distance, velocity)
         self._cf.high_level_commander.go_to(x, y, z, yaw, duration_s, relative)
         return duration_s
 
-    def go_to_sync(self, x, y, z, yaw, velocity, relative=False):
+    def go_to_sync(self, x, y, z, yaw, velocity, relative=False) -> float:
         duration_s = self.go_to(x, y, z, yaw, velocity, relative)
         time.sleep(duration_s)
         return duration_s
@@ -160,6 +165,7 @@ class Drone:
     def _connection_lost(self, link_uri, msg):
         """Callback when the connection is lost after a connection has been made."""
         print('Connection to %s lost: %s' % (link_uri, msg))
+        self.drone_lost.call(self)
         self._connect_event.set()
         self.is_connected = False
 
@@ -175,6 +181,7 @@ class Drone:
         self.pos_x = data['kalman.stateX']
         self.pos_y = data['kalman.stateY']
         self.pos_z = data['kalman.stateZ']
+        self.yaw = data['stabilizer.yaw']
 
     def _unlock(self):
         # Unlock startup thrust protection
@@ -193,12 +200,12 @@ class Drone:
             keeptime -= 0.1
             time.sleep(0.1)
 
-    def _convert_velocity_to_time(self, distance, velocity, max_velocity=0.2):
+    def _convert_velocity_to_time(self, distance, velocity, max_velocity=0.2) -> float:
         """Converts a distance and a velocity to a time."""
         needed_time = float(distance) / min(velocity, max_velocity)
         return needed_time
 
-    def _calculate_distance(self, x, y, z, relative=False):
+    def _calculate_distance(self, x, y, z, relative=False) -> float:
         """Calculates the distance from the drone or the zero position (relative) to a given point in space."""
         start_x = 0 if relative else self.pos_x
         start_y = 0 if relative else self.pos_y

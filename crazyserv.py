@@ -2,15 +2,15 @@ import platform
 from flask import Flask, request, jsonify, abort
 import cflib
 from crazyserv import Drone
-from crazyserv import Group
-from crazyserv import GroupManager
+from crazyserv import Swarm
+from crazyserv import SwarmManager
 from crazyserv import Arena
 
 ##############################
 # Globals (cough)
 ##############################
 app = Flask(__name__)
-group_manager = GroupManager()
+swarm_manager = SwarmManager()
 
 ##############################
 # Route Definitions
@@ -22,106 +22,104 @@ def hello():
     return "Welcome to CrazyServ!"
 
 
-@app.route("/api/<groupId>/status")
-def status(groupId):
-    group = group_manager.get_group(groupId)
-    if group is None:
-        abort(404, description="Group not found.")
-        return
-    group_status = "["
-    for drone in group.drones:
-        group_status += drone.get_status()
-        group_status += ","
-    group_status = group_status[0:-1]
-    group_status += "]"
-    return group_status, 200
+@app.route("/api/<swarm_id>/status")
+def status(swarm_id):
+    swarm = swarm_manager.get_swarm(swarm_id)
+    if swarm is None:
+        abort(404, description="Swarm not found.")
+    drone_stats = []
+    for drone in swarm.drones:
+        drone_stats.append(drone.get_status())
+    return jsonify(drone_stats)
 
 
-@app.route("/api/<groupId>/<droneId>/connect")
-def connect(groupId, droneId):
-    global group_manager
-    # Try to create and connect to the drone
-    drone = Drone(droneId)
-    drone.connect_sync()
+@app.route("/api/<swarm_id>/<drone_id>/status")
+def drone_status(swarm_id, drone_id):
+    swarm = swarm_manager.get_swarm(swarm_id)
+    if swarm is None:
+        abort(404, description="Swarm not found.")
+    drone = swarm.get_drone(drone_id)
+    if drone is None:
+        abort(404, description="Drone not found.")
+    return jsonify(drone.get_status())
+
+
+@app.route("/api/<swarm_id>/<drone_id>/connect")
+def connect(swarm_id, drone_id):
+    added_drone = swarm_manager.add_drone(swarm_id, drone_id)
     # Check if the connection to the drone was successfull
-    if (not drone.is_connected):
+    if added_drone is None:
         # Connection failed
         abort(500, "Could not connect to drone.")
-        return
-    # Connection successfull, add the drone to the group
-    drone.enable_high_level_commander()
-    drone.reset_estimator()
-    group = group_manager.get_or_add_group(groupId)
-    group.add_drone(drone)
-    return jsonify({'group': group.id})
+    return jsonify(added_drone.get_status())
 
 
-@app.route("/api/<groupId>/<droneId>/disconnect")
-def disconnect(groupId, droneId):
-    drone = group_manager.get_drone(groupId, droneId)
-    drone.disconnect()
-    group = group_manager.get_or_add_group(groupId)
-    group.remove_drone(drone)
-    return jsonify({'group': groupId})
+@app.route("/api/<swarm_id>/<drone_id>/disconnect")
+def disconnect(swarm_id, drone_id):
+    drone_removed = swarm_manager.remove_drone(swarm_id, drone_id)
+    return jsonify({'success': drone_removed})
 
 
-@app.route("/api/<groupId>/<droneId>/calibrate")
-def calibrate(groupId, droneId):
-    drone = group_manager.get_drone(groupId, droneId)
-    drone.reset_estimator()
-    return jsonify({'group': groupId})
+@app.route("/api/<swarm_id>/<drone_id>/calibrate")
+def calibrate(swarm_id, drone_id):
+    drone = swarm_manager.get_drone(swarm_id, drone_id)
+    if (drone is None):
+        abort(404, description="Drone not found.")
+    resetted = drone.reset_estimator()
+    return jsonify({'success': resetted})
 
 
-@app.route("/api/<groupId>/<droneId>/takeoff")
-def takeoff(groupId, droneId):
+@app.route("/api/<swarm_id>/<drone_id>/takeoff")
+def takeoff(swarm_id, drone_id):
     z = float(request.args.get("z"))
     v = float(request.args.get("v"))
+    drone = swarm_manager.get_drone(swarm_id, drone_id)
+    if (drone is None):
+        abort(404, description="Drone not found.")
+    expected_duration = drone.takeoff(z, v)
+    return jsonify({'expected_duration': expected_duration})
 
-    drone = group_manager.get_drone(groupId, droneId)
-    drone.takeoff(z, v)
 
-    return jsonify({'expectedDuration': 1})
-
-
-@app.route("/api/<groupId>/<droneId>/land")
-def land(groupId, droneId):
+@app.route("/api/<swarm_id>/<drone_id>/land")
+def land(swarm_id, drone_id):
     z = float(request.args.get("z"))
     v = float(request.args.get("v"))
+    drone = swarm_manager.get_drone(swarm_id, drone_id)
+    if (drone is None):
+        abort(404, description="Drone not found.")
+    expected_duration = drone.land(z, v)
+    return jsonify({'expected_duration': expected_duration})
 
-    drone = group_manager.get_drone(groupId, droneId)
-    drone.land(z, v)
 
-    return jsonify({'expectedDuration': 1})
-
-
-@app.route("/api/<groupId>/<droneId>/stop")
-def stop(groupId, droneId):
-    drone = group_manager.get_drone(groupId, droneId)
+@app.route("/api/<swarm_id>/<drone_id>/stop")
+def stop(swarm_id, drone_id):
+    drone = swarm_manager.get_drone(swarm_id, drone_id)
+    if (drone is None):
+        abort(404, description="Drone not found.")
     drone.stop()
+    return jsonify(drone.get_status())
 
-    return '', 200
 
-
-@app.route("/api/<groupId>/<droneId>/goto")
-def goto(groupId, droneId):
+@app.route("/api/<swarm_id>/<drone_id>/goto")
+def goto(swarm_id, drone_id):
     x = float(request.args.get("x"))
     y = float(request.args.get("y"))
     z = float(request.args.get("z"))
     yaw = float(request.args.get("yaw"))
     v = float(request.args.get("v"))
-
-    drone = group_manager.get_drone(groupId, droneId)
-    drone.go_to(x, y, z, yaw, v)
-
-    return jsonify({'expectedDuration': 1})
+    drone = swarm_manager.get_drone(swarm_id, drone_id)
+    if (drone is None):
+        abort(404, description="Drone not found.")
+    expected_duration = drone.go_to(x, y, z, yaw, v)
+    return jsonify({'expected_duration': expected_duration})
 
 
 @app.route('/shutdown', methods=['GET'])
 def shutdown():
     # Cleanup
-    for group in group_manager.groups:
-        for drone in group.drones:
-            drone.disconnect()
+    for swarm in swarm_manager.swarms:
+        for drone in swarm.drones:
+            swarm.remove_drone(drone.id)
     # Shutdown the server
     shutdown_server()
     return 'Server shutting down...'
