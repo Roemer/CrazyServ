@@ -56,6 +56,22 @@ def connect(groupId, droneId):
     return jsonify({'group': group.id})
 
 
+@app.route("/api/<groupId>/<droneId>/disconnect")
+def disconnect(groupId, droneId):
+    drone = group_manager.get_drone(groupId, droneId)
+    drone.disconnect()
+    group = group_manager.get_or_add_group(groupId)
+    group.remove_drone(drone)
+    return jsonify({'group': groupId})
+
+
+@app.route("/api/<groupId>/<droneId>/calibrate")
+def calibrate(groupId, droneId):
+    drone = group_manager.get_drone(groupId, droneId)
+    drone.reset_estimator()
+    return jsonify({'group': groupId})
+
+
 @app.route("/api/<groupId>/<droneId>/takeoff")
 def takeoff(groupId, droneId):
     z = float(request.args.get("z"))
