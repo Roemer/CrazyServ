@@ -45,7 +45,7 @@ def status(swarm_id):
     if swarm is None:
         abort(404, description="Swarm not found.")
     drone_stats = []
-    for drone_id, drone in swarm.drones.items():
+    for _, drone in swarm.drones.items():
         drone_stats.append(drone.get_status())
     return jsonify(drone_stats)
 
@@ -98,8 +98,8 @@ def takeoff(swarm_id, drone_id):
     drone = swarm_manager.get_drone(swarm_id, drone_id)
     if (drone is None):
         abort(404, description="Drone not found.")
-    expected_duration = drone.takeoff(z, v)
-    return jsonify({'expected_duration': expected_duration})
+    takeoff_result = drone.takeoff(z, v)
+    return jsonify(takeoff_result)
 
 
 @app.route("/api/<swarm_id>/<drone_id>/land")
@@ -109,8 +109,8 @@ def land(swarm_id, drone_id):
     drone = swarm_manager.get_drone(swarm_id, drone_id)
     if (drone is None):
         abort(404, description="Drone not found.")
-    expected_duration = drone.land(z, v)
-    return jsonify({'expected_duration': expected_duration})
+    land_result = drone.land(z, v)
+    return jsonify(land_result)
 
 
 @app.route("/api/<swarm_id>/<drone_id>/stop")
@@ -128,12 +128,13 @@ def goto(swarm_id, drone_id):
     y = float(request.args.get("y"))
     z = float(is_none(request.args.get("z"), default_start_z))
     yaw = float(is_none(request.args.get("yaw"), default_yaw))
-    v = float(is_none(request.args.get("v"), default_velocity))
+    velocity = float(is_none(request.args.get("v"), default_velocity))
+    relative = bool(is_none(request.args.get("r"), 0))
     drone = swarm_manager.get_drone(swarm_id, drone_id)
     if (drone is None):
         abort(404, description="Drone not found.")
-    expected_duration = drone.go_to(x, y, z, yaw, v)
-    return jsonify({'expected_duration': expected_duration})
+    go_to_result = drone.go_to(x, y, z, yaw, velocity, relative)
+    return jsonify(go_to_result)
 
 
 @app.route('/shutdown', methods=['GET'])

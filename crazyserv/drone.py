@@ -122,7 +122,10 @@ class Drone:
         self.status = DroneState.STARTING
         if synchronous:
             time.sleep(duration)
-        return duration
+        return {
+            "duration": duration,
+            "target_z": absolute_height
+        }
 
     def land(self, absolute_height: float, velocity: float, synchronous: bool = False) -> float:
         absolute_height = self._sanitize_z(absolute_height)
@@ -131,19 +134,30 @@ class Drone:
         self.status = DroneState.LANDING
         if synchronous:
             time.sleep(duration)
-        return duration
+        return {
+            "duration": duration,
+            "target_z": absolute_height
+        }
 
     def go_to(self, x: float, y: float, z: float, yaw: float, velocity: float, relative: bool = False, synchronous: bool = False) -> float:
         x = self._sanitize_x(x)
         y = self._sanitize_y(y)
         z = self._sanitize_z(z)
+        yaw = self._sanitize_yaw(yaw)
         distance = self._calculate_distance(x, y, z, relative)
         duration = self._convert_velocity_to_time(distance, velocity)
         self._cf.high_level_commander.go_to(x, y, z, yaw, duration, relative)
         self.status = DroneState.NAVIGATING
         if synchronous:
             time.sleep(duration)
-        return duration
+        return {
+            "duration": duration,
+            "target_x": x,
+            "target_y": y,
+            "target_z": z,
+            "target_yaw": yaw,
+            "relative": relative
+        }
 
     def stop(self):
         self._cf.high_level_commander.stop()
