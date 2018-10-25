@@ -11,6 +11,10 @@ from crazyserv import Arena
 ##############################
 app = Flask(__name__)
 swarm_manager = SwarmManager()
+default_velocity = 0.2
+default_start_z = 1
+default_land_z = 0
+default_yaw = 0
 
 ##############################
 # Route Definitions
@@ -59,7 +63,12 @@ def drone_status(swarm_id, drone_id):
 
 @app.route("/api/<swarm_id>/<drone_id>/connect")
 def connect(swarm_id, drone_id):
-    added_drone = swarm_manager.add_drone(swarm_id, drone_id)
+    radio_id = int(is_none(request.args.get("r"), 0))
+    channel = int(is_none(request.args.get("c"), 80))
+    address = is_none(request.args.get("a"), "E7E7E7E7E7")
+    data_rate = is_none(request.args.get("dr"), "2M")
+
+    added_drone = swarm_manager.add_drone(swarm_id, drone_id, radio_id, channel, address, data_rate)
     # Check if the connection to the drone was successfull
     if added_drone is None:
         # Connection failed
@@ -84,8 +93,8 @@ def calibrate(swarm_id, drone_id):
 
 @app.route("/api/<swarm_id>/<drone_id>/takeoff")
 def takeoff(swarm_id, drone_id):
-    z = float(request.args.get("z"))
-    v = float(request.args.get("v"))
+    z = float(is_none(request.args.get("z"), default_start_z))
+    v = float(is_none(request.args.get("v"), default_velocity))
     drone = swarm_manager.get_drone(swarm_id, drone_id)
     if (drone is None):
         abort(404, description="Drone not found.")
@@ -95,8 +104,8 @@ def takeoff(swarm_id, drone_id):
 
 @app.route("/api/<swarm_id>/<drone_id>/land")
 def land(swarm_id, drone_id):
-    z = float(request.args.get("z"))
-    v = float(request.args.get("v"))
+    z = float(is_none(request.args.get("z"), default_land_z))
+    v = float(is_none(request.args.get("v"), default_velocity))
     drone = swarm_manager.get_drone(swarm_id, drone_id)
     if (drone is None):
         abort(404, description="Drone not found.")
@@ -117,9 +126,9 @@ def stop(swarm_id, drone_id):
 def goto(swarm_id, drone_id):
     x = float(request.args.get("x"))
     y = float(request.args.get("y"))
-    z = float(request.args.get("z"))
-    yaw = float(request.args.get("yaw"))
-    v = float(request.args.get("v"))
+    z = float(is_none(request.args.get("z"), default_start_z))
+    yaw = float(is_none(request.args.get("yaw"), default_yaw))
+    v = float(is_none(request.args.get("v"), default_velocity))
     drone = swarm_manager.get_drone(swarm_id, drone_id)
     if (drone is None):
         abort(404, description="Drone not found.")
@@ -143,6 +152,13 @@ def shutdown_server():
     if func is None:
         raise RuntimeError('Not running with the Werkzeug Server')
     func()
+
+
+def is_none(value, alternative):
+    if value is None:
+        return alternative
+    else:
+        return value
 
 
 ##############################

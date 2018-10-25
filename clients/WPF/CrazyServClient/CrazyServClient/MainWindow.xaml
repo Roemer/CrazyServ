@@ -17,6 +17,10 @@
                 <RowDefinition Height="24"/>
                 <RowDefinition Height="24"/>
                 <RowDefinition Height="24"/>
+                <RowDefinition Height="24"/>
+                <RowDefinition Height="24"/>
+                <RowDefinition Height="24"/>
+                <RowDefinition Height="24"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
@@ -33,7 +37,19 @@
             <Label Grid.Column="0" Grid.Row="2">Drone Id</Label>
             <TextBox Grid.Column="1" Grid.Row="2" Text="{Binding DroneId}" Width="200" />
 
-            <Grid Grid.ColumnSpan="2" Grid.Column="0" Grid.Row="3">
+            <Label Grid.Column="0" Grid.Row="3">Radio</Label>
+            <TextBox Grid.Column="1" Grid.Row="3" Text="{Binding RadioId}" Width="200" />
+
+            <Label Grid.Column="0" Grid.Row="4">Channel</Label>
+            <TextBox Grid.Column="1" Grid.Row="4" Text="{Binding Channel}" Width="200" />
+
+            <Label Grid.Column="0" Grid.Row="5">Address</Label>
+            <TextBox Grid.Column="1" Grid.Row="5" Text="{Binding Address}" Width="200" />
+
+            <Label Grid.Column="0" Grid.Row="6">Data Rate</Label>
+            <TextBox Grid.Column="1" Grid.Row="6" Text="{Binding DataRate}" Width="200" />
+
+            <Grid Grid.ColumnSpan="2" Grid.Column="0" Grid.Row="7">
                 <StackPanel Orientation="Vertical">
                     <Button Command="{Binding GetSwarmStatusCommand}">Get Swarm Status</Button>
                     <Button Command="{Binding ConnectDroneCommand}">Connect Drone</Button>

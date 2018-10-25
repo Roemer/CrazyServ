@@ -25,29 +25,29 @@ class SwarmManager:
             return None
         return self.swarms.get(swarm_id)
 
-    def add_drone(self, swarm_id: str, drone_id: int) -> Drone:
+    def add_drone(self, swarm_id: str, drone_id: str, radio_id: int, channel: int, address: str, data_rate: str) -> Drone:
         """Adds a drone to the swarm. Creates the swarm if it does not exist yet.
 
         Arguments:
             swarm_id {str} -- The swarm id to add the drone to.
-            drone_id {int} -- The drone id of the drone to add to the swarm.
+            drone_id {str} -- The drone id of the drone to add to the swarm.
 
         Returns:
             Drone -- The added drone or None if adding failed.
         """
 
         swarm = self._get_or_add_swarm(swarm_id)
-        success = swarm.add_drone(drone_id)
+        success = swarm.add_drone(drone_id, radio_id, channel, address, data_rate)
         if success:
             return swarm.get_drone(drone_id)
         return None
 
-    def remove_drone(self, swarm_id: str, drone_id: int) -> bool:
+    def remove_drone(self, swarm_id: str, drone_id: str) -> bool:
         """Removes a drone from a swarm.
 
         Arguments:
             swarm_id {str} -- The id of the swarm where the drone should be removed.
-            drone_id {int} -- The id of the drone which should be removed from the swarm.
+            drone_id {str} -- The id of the drone which should be removed from the swarm.
 
         Returns:
             bool -- True if the drone was removed, False otherwise.
@@ -58,12 +58,12 @@ class SwarmManager:
             return swarm.remove_drone(drone_id)
         return False
 
-    def get_drone(self, swarm_id: str, drone_id: int) -> Drone:
+    def get_drone(self, swarm_id: str, drone_id: str) -> Drone:
         """Gets a specific drone from a specific swarm.
 
         Arguments:
             swarm_id {str} -- The id of the swarm to get the drone from.
-            drone_id {int} -- The id of the drone to get from the swarm.
+            drone_id {str} -- The id of the drone to get from the swarm.
 
         Returns:
             Drone -- The drone if one exists, None otherwise.

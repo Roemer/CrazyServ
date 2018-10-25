@@ -15,9 +15,11 @@ namespace CrazyServLib
 
 
 
-        public static async void DroneStatus(string swarmId, int droneId)
+        public static async void DroneStatus(string swarmId, string droneId)
         {
-
+            var client = GetClient();
+            var resp = await client.GetAsync($"/api/{swarmId}/{droneId}/status");
+            var value = await resp.Content.ReadAsStringAsync();
         }
 
         public static async Task<Arena> Arena()
@@ -48,42 +50,42 @@ namespace CrazyServLib
             return null;
         }
 
-        public static async void ConnectDrone(string swarmId, int droneId)
+        public static async void Connect(string swarmId, string droneId, int radioId, int channel, string address, string dataRate)
         {
             var client = GetClient();
-            var resp = await client.GetAsync($"/api/{swarmId}/{droneId}/connect");
+            var resp = await client.GetAsync($"/api/{swarmId}/{droneId}/connect?r={radioId}&c={channel}&a={address}&dr={dataRate}");
             var value = await resp.Content.ReadAsStringAsync();
         }
 
-        public static async void DisconnectDrone(string swarmId, int droneId)
+        public static async void Disconnect(string swarmId, string droneId)
         {
             var client = GetClient();
             var resp = await client.GetAsync($"/api/{swarmId}/{droneId}/disconnect");
             var value = await resp.Content.ReadAsStringAsync();
         }
 
-        public static async void Takeoff(string swarmId, int droneId, double z, double v)
+        public static async void Takeoff(string swarmId, string droneId, double z, double v)
         {
             var client = GetClient();
             var resp = await client.GetAsync($"/api/{swarmId}/{droneId}/takeoff?z={z}&v={v}");
             var value = await resp.Content.ReadAsStringAsync();
         }
 
-        public static async void Land(string swarmId, int droneId, double z, double v)
+        public static async void Land(string swarmId, string droneId, double z, double v)
         {
             var client = GetClient();
             var resp = await client.GetAsync($"/api/{swarmId}/{droneId}/land?z={z}&v={v}");
             var value = await resp.Content.ReadAsStringAsync();
         }
 
-        public static async void Stop(string swarmId, int droneId)
+        public static async void Stop(string swarmId, string droneId)
         {
             var client = GetClient();
             var resp = await client.GetAsync($"/api/{swarmId}/{droneId}/stop");
             var value = await resp.Content.ReadAsStringAsync();
         }
 
-        public static async void GoTo(string swarmId, int droneId, double x, double y, double z, double yaw, double v)
+        public static async void GoTo(string swarmId, string droneId, double x, double y, double z, double yaw, double v)
         {
             var client = GetClient();
             var resp = await client.GetAsync($"/api/{swarmId}/{droneId}/goto?x={x}&y={y}&z={z}&yaw={yaw}&v={v}");

@@ -8,21 +8,21 @@ class Swarm:
 
     def __init__(self, swarm_id: str):
         self.id: str = swarm_id
-        self.drones: Dict[int, Drone] = {}
+        self.drones: Dict[str, Drone] = {}
         self._lock = threading.Lock()
 
-    def add_drone(self, drone_id: int) -> bool:
+    def add_drone(self, drone_id: str, radio_id: int, channel: int, address: str, data_rate: str) -> bool:
         """Adds a new drone with the given id to the swarm.
 
         Arguments:
-            drone_id {int} -- THe id of the drone that should be added.
+            drone_id {str} -- The id of the drone that should be added.
 
         Returns:
             bool -- True if the drone was added successfully, False otherwise.
         """
 
         # Try to create and connect to the drone
-        drone = Drone(drone_id)
+        drone = Drone(drone_id, radio_id, channel, address, data_rate)
         drone.connect(synchronous=True)
         # Check if the connection to the drone was successfull
         if (not drone.is_connected):
@@ -39,11 +39,11 @@ class Swarm:
         drone.drone_lost.add_callback(self._drone_connection_lost)
         return True
 
-    def remove_drone(self, drone_id: int) -> bool:
+    def remove_drone(self, drone_id: str) -> bool:
         """Tries to disconnect and remove the drone with the given id from the swarm.
 
         Arguments:
-            drone_id {int} -- The id of the drone that should be removed.
+            drone_id {str} -- The id of the drone that should be removed.
 
         Returns:
             bool -- True if the drone was found and removed, false if the drone was not found.
@@ -61,11 +61,11 @@ class Swarm:
             return True
         return False
 
-    def get_drone(self, drone_id: int) -> Drone:
+    def get_drone(self, drone_id: str) -> Drone:
         """Gets the drone with the given id from the swarm.
 
         Arguments:
-            drone_id {int} -- The id of the drone to get.
+            drone_id {str} -- The id of the drone to get.
 
         Returns:
             Drone -- The drone object or None if no drone with the given id exists.

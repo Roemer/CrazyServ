@@ -24,11 +24,11 @@ class DroneState(Enum):
 class Drone:
     """Represents a CrazyFlie drone."""
 
-    def __init__(self, drone_id: int, bandwidth: str = "2M"):
+    def __init__(self, drone_id: str, radio_id: int = 0, channel: int = 80, address: str = "E7E7E7E7E7", data_rate: str = "2M"):
         """ Initializes the drone with the given uri."""
 
         # Initialize public variables
-        self.id: int = drone_id
+        self.id: str = drone_id
         self.var_x: float = 0
         self.var_y: float = 0
         self.var_z: float = 0
@@ -39,7 +39,7 @@ class Drone:
         self.battery_voltage: float = 0
         self.is_connected: bool = False
         self.status: DroneState = DroneState.OFFLINE
-        self.link_uri: str = "radio://0/" + drone_id + "/" + bandwidth
+        self.link_uri: str = "radio://" + radio_id + "/" + channel + "/" + data_rate + "/" + address
 
         # Initialize limits
         self._max_velocity: float = 0.2

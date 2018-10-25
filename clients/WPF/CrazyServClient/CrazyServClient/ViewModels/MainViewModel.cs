@@ -11,7 +11,7 @@ namespace CrazyServClient.ViewModels
 {
     public class MainViewModel : ObservableObject
     {
-        const double canvasReduction = 0.3;
+        const double CanvasReduction = 0.3;
 
         public ICommand GetSwarmStatusCommand { get; }
         public ICommand ConnectDroneCommand { get; }
@@ -52,6 +52,30 @@ namespace CrazyServClient.ViewModels
             set => SetValue(value);
         }
 
+        public string RadioId
+        {
+            get => GetValue<string>();
+            set => SetValue(value);
+        }
+
+        public string Channel
+        {
+            get => GetValue<string>();
+            set => SetValue(value);
+        }
+
+        public string Address
+        {
+            get => GetValue<string>();
+            set => SetValue(value);
+        }
+
+        public string DataRate
+        {
+            get => GetValue<string>();
+            set => SetValue(value);
+        }
+
         public ObservableCollection<CanvasItemViewModel> CanvasItems { get; } = new ObservableCollection<CanvasItemViewModel>();
 
         public MainViewModel()
@@ -60,10 +84,10 @@ namespace CrazyServClient.ViewModels
             {
                 var drones = Task.Run(async () => await CrazyServApi.SwarmStatus(SwarmName)).Result;
                 CanvasItems.Clear();
-                var canvasXMin = CanvasWidth * canvasReduction;
-                var canvasXMax = CanvasWidth * (1 - canvasReduction);
-                var canvasYMin = CanvasHeight * canvasReduction;
-                var canvasYMax = CanvasHeight * (1 - canvasReduction);
+                var canvasXMin = CanvasWidth * CanvasReduction;
+                var canvasXMax = CanvasWidth * (1 - CanvasReduction);
+                var canvasYMin = CanvasHeight * CanvasReduction;
+                var canvasYMax = CanvasHeight * (1 - CanvasReduction);
                 CanvasItems.Add(new AnchorViewModel() { X = canvasXMin, Y = canvasYMin });
                 CanvasItems.Add(new AnchorViewModel() { X = canvasXMin, Y = canvasYMax });
                 CanvasItems.Add(new AnchorViewModel() { X = canvasXMax, Y = canvasYMax });
@@ -80,23 +104,23 @@ namespace CrazyServClient.ViewModels
             });
             ConnectDroneCommand = new RelayCommand(o =>
             {
-                CrazyServApi.ConnectDrone(SwarmName, Convert.ToInt32(DroneId));
+                CrazyServApi.Connect(SwarmName, DroneId, Convert.ToInt32(RadioId), Convert.ToInt32(Channel), Address, DataRate);
             });
             DisconnectDroneCommand = new RelayCommand(o =>
             {
-                CrazyServApi.DisconnectDrone(SwarmName, Convert.ToInt32(DroneId));
+                CrazyServApi.Disconnect(SwarmName, DroneId);
             });
             TakeoffCommand = new RelayCommand(o =>
             {
-                CrazyServApi.Takeoff(SwarmName, Convert.ToInt32(DroneId), 1, 0.2);
+                CrazyServApi.Takeoff(SwarmName, DroneId, 1, 0.2);
             });
             LandCommand = new RelayCommand(o =>
             {
-                CrazyServApi.Land(SwarmName, Convert.ToInt32(DroneId), 0, 0.2);
+                CrazyServApi.Land(SwarmName, DroneId, 0, 0.2);
             });
             StopCommand = new RelayCommand(o =>
             {
-                CrazyServApi.Stop(SwarmName, Convert.ToInt32(DroneId));
+                CrazyServApi.Stop(SwarmName, DroneId);
             });
         }
 
@@ -107,16 +131,16 @@ namespace CrazyServClient.ViewModels
 
         public async Task SendDroneTo(Point targetPosition)
         {
-            var canvasXMin = CanvasWidth * canvasReduction;
-            var canvasXMax = CanvasWidth * (1 - canvasReduction);
-            var canvasYMin = CanvasHeight * canvasReduction;
-            var canvasYMax = CanvasHeight * (1 - canvasReduction);
+            var canvasXMin = CanvasWidth * CanvasReduction;
+            var canvasXMax = CanvasWidth * (1 - CanvasReduction);
+            var canvasYMin = CanvasHeight * CanvasReduction;
+            var canvasYMax = CanvasHeight * (1 - CanvasReduction);
 
             var newX = (targetPosition.X - canvasXMin) * (Arena.MaxX - Arena.MinX) / (canvasXMax - canvasXMin);
             var newY = (targetPosition.Y - canvasYMin) * (Arena.MaxY - Arena.MinY) / (canvasYMax - canvasYMin);
 
             Console.WriteLine($"Send drone to: {newX}/{newY}");
-            CrazyServApi.GoTo(SwarmName, Convert.ToInt32(DroneId), newX, newY, 1, 0, 0.2);
+            CrazyServApi.GoTo(SwarmName, DroneId, newX, newY, 1, 0, 0.2);
         }
     }
 }

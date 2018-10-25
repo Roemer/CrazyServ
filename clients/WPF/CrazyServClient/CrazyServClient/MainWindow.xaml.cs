@@ -18,7 +18,11 @@ namespace CrazyServClient
 
             _viewModel.BaseUrl = "http://nb50224:5000/";
             _viewModel.SwarmName = "rbl";
-            _viewModel.DroneId = "88";
+            _viewModel.DroneId = "MyDrone";
+            _viewModel.RadioId = "0";
+            _viewModel.Channel = "80";
+            _viewModel.Address = "E7E7E7E7E7";
+            _viewModel.DataRate = "2M";
 
             Task.Run(() => _viewModel.InitArena()).Wait();
 
