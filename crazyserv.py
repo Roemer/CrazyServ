@@ -28,7 +28,7 @@ def status(swarm_id):
     if swarm is None:
         abort(404, description="Swarm not found.")
     drone_stats = []
-    for drone in swarm.drones:
+    for drone_id, drone in swarm.drones.items():
         drone_stats.append(drone.get_status())
     return jsonify(drone_stats)
 
