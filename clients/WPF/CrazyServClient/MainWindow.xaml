@@ -1,0 +1,106 @@
+﻿<Window x:Class="CrazyServClient.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:CrazyServClient"
+        xmlns:viewModels="clr-namespace:CrazyServClient.ViewModels"
+        mc:Ignorable="d"
+        Title="CrazyServ WPF Client" Height="450" Width="800">
+    <DockPanel LastChildFill="True">
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="_File">
+                <MenuItem Header="_Exit" />
+            </MenuItem>
+        </Menu>
+        <StatusBar DockPanel.Dock="Bottom">
+            <StatusBarItem>
+                <TextBlock Text="Hello" />
+            </StatusBarItem>
+        </StatusBar>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="250"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="24"/>
+                    <RowDefinition Height="24"/>
+                    <RowDefinition Height="24"/>
+                    <RowDefinition Height="24"/>
+                    <RowDefinition Height="24"/>
+                    <RowDefinition Height="24"/>
+                    <RowDefinition Height="24"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="80"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Label Grid.Column="0" Grid.Row="0">Base Url</Label>
+                <TextBox Grid.Column="1" Grid.Row="0" Text="{Binding BaseUrl}" />
+
+                <Label Grid.Column="0" Grid.Row="1">Swarm Name</Label>
+                <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding SwarmName}" Width="200" />
+
+                <Label Grid.Column="0" Grid.Row="2">Drone Id</Label>
+                <TextBox Grid.Column="1" Grid.Row="2" Text="{Binding DroneId}" Width="200" />
+
+                <Label Grid.Column="0" Grid.Row="3">Radio</Label>
+                <TextBox Grid.Column="1" Grid.Row="3" Text="{Binding RadioId}" Width="200" />
+
+                <Label Grid.Column="0" Grid.Row="4">Channel</Label>
+                <TextBox Grid.Column="1" Grid.Row="4" Text="{Binding Channel}" Width="200" />
+
+                <Label Grid.Column="0" Grid.Row="5">Address</Label>
+                <TextBox Grid.Column="1" Grid.Row="5" Text="{Binding Address}" Width="200" />
+
+                <Label Grid.Column="0" Grid.Row="6">Data Rate</Label>
+                <TextBox Grid.Column="1" Grid.Row="6" Text="{Binding DataRate}" Width="200" />
+
+                <Grid Grid.ColumnSpan="2" Grid.Column="0" Grid.Row="7">
+                    <StackPanel Orientation="Vertical">
+                        <Button Command="{Binding GetSwarmStatusCommand}">Get Swarm Status</Button>
+                        <Button Command="{Binding ConnectDroneCommand}">Connect Drone</Button>
+                        <Button Command="{Binding DisconnectDroneCommand}">Disconnect Drone</Button>
+                        <Button Command="{Binding TakeoffCommand}">Takeoff</Button>
+                        <Button Command="{Binding LandCommand}">Land</Button>
+                        <Button Command="{Binding StopCommand}">Stop</Button>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+            <Grid Grid.Column="1">
+                <Border BorderBrush="Black" BorderThickness="2">
+                    <ItemsControl x:Name="ic" ItemsSource="{Binding CanvasItems}" SizeChanged="Ic_OnSizeChanged">
+                        <ItemsControl.Resources>
+                            <DataTemplate DataType="{x:Type viewModels:DroneViewModel}">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Id}"/>
+                                    <TextBlock Text="{Binding Battery, StringFormat={}({0})%}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type viewModels:AnchorViewModel}">
+                                <StackPanel>
+                                    <Ellipse Width="4" Height="4" Fill="Black"></Ellipse>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.Resources>
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <Canvas Background="White" PreviewMouseLeftButtonUp="UIElement_OnMouseLeftButtonUp" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemContainerStyle>
+                            <Style TargetType="ContentPresenter">
+                                <Setter Property="Canvas.Left" Value="{Binding X}"/>
+                                <Setter Property="Canvas.Top" Value="{Binding Y}"/>
+                            </Style>
+                        </ItemsControl.ItemContainerStyle>
+                    </ItemsControl>
+                </Border>
+            </Grid>
+        </Grid>
+    </DockPanel>
+</Window>

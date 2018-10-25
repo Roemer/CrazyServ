@@ -61,6 +61,10 @@
     <Compile Include="Core\AsyncRelayCommand.cs" />
     <Compile Include="Core\RelayCommand.cs" />
     <Compile Include="Core\TypedRelayCommand.cs" />
+    <Compile Include="Models\Arena.cs" />
+    <Compile Include="Models\Drone.cs" />
+    <Compile Include="Models\Swarm.cs" />
+    <Compile Include="Models\SwarmManager.cs" />
     <Compile Include="ViewModels\AnchorViewModel.cs" />
     <Compile Include="ViewModels\CanvasItemViewModel.cs" />
     <Compile Include="ViewModels\DroneViewModel.cs" />
@@ -112,5 +116,6 @@
       <Name>CrazyServLib</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -2,7 +2,7 @@
 
 namespace CrazyServLib.ApiObjects
 {
-    public class Drone
+    public class DroneStatus
     {
         [JsonProperty("id")]
         public int Id { get; set; }

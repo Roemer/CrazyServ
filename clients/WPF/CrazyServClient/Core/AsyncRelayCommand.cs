@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -7,15 +8,15 @@ namespace CrazyServClient.Core
 {
     public class AsyncRelayCommand : ICommand
     {
-        private readonly Func<object, Task> _execute;
-        private readonly Func<object, bool> _canExecute;
+        private readonly Func<object, Task> _methodToExecute;
+        private readonly Func<object, bool> _canExecuteEvaluator;
 
         private long _isExecuting;
 
-        public AsyncRelayCommand(Func<object, Task> execute, Func<object, bool> canExecute = null)
+        public AsyncRelayCommand(Func<object, Task> methodToExecute, Func<object, bool> canExecute = null)
         {
-            _execute = execute;
-            _canExecute = canExecute ?? (o => true);
+            _methodToExecute = methodToExecute;
+            _canExecuteEvaluator = canExecute ?? (o => true);
         }
 
         public event EventHandler CanExecuteChanged
@@ -29,12 +30,15 @@ namespace CrazyServClient.Core
             CommandManager.InvalidateRequerySuggested();
         }
 
+        [DebuggerStepThrough]
         public bool CanExecute(object parameter)
         {
             if (Interlocked.Read(ref _isExecuting) != 0)
+            {
                 return false;
+            }
 
-            return _canExecute(parameter);
+            return _canExecuteEvaluator(parameter);
         }
 
         public async void Execute(object parameter)
@@ -44,7 +48,7 @@ namespace CrazyServClient.Core
 
             try
             {
-                await _execute(parameter);
+                await _methodToExecute(parameter);
             }
             finally
             {
