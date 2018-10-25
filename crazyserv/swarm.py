@@ -23,7 +23,7 @@ class Swarm:
 
         # Try to create and connect to the drone
         drone = Drone(drone_id)
-        drone.connect_sync()
+        drone.connect(synchronous=True)
         # Check if the connection to the drone was successfull
         if (not drone.is_connected):
             # Connection failed

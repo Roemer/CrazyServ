@@ -1,5 +1,6 @@
 import time
-from threading import Event
+import math
+import threading
 import numpy as np
 
 from cflib.crazyflie import Crazyflie
@@ -10,11 +11,11 @@ from cflib.utils.callbacks import Caller
 class Drone:
     """Represents a CrazyFlie drone."""
 
-    def __init__(self, drone_id, bandwidth="2M"):
+    def __init__(self, drone_id: int, bandwidth: str = "2M"):
         """ Initializes the drone with the given uri."""
 
         # Initialize public variables
-        self.id = drone_id
+        self.id: int = drone_id
         self.var_x: float = 0
         self.var_y: float = 0
         self.var_z: float = 0
@@ -22,10 +23,19 @@ class Drone:
         self.pos_y: float = 0
         self.pos_z: float = 0
         self.yaw: float = 0
-        self.is_connected = False
-        self.link_uri = "radio://0/" + drone_id + "/" + bandwidth
+        self.is_connected: bool = False
+        self.link_uri: str = "radio://0/" + drone_id + "/" + bandwidth
 
-        self._connect_event = Event()
+        # Initialize limits
+        self._max_velocity: float = 0.2
+        self._min_duration: float = 1
+        self._max_yaw_rotations: float = 1
+        self._arena_valid_x = [0, 2]
+        self._arena_valid_y = [0, 2]
+        self._arena_valid_z = [0.2, 2]
+
+        # Event to asynchronously wait for the connection
+        self._connect_event = threading.Event()
 
         # Initialize the crazyflie
         self._cf = Crazyflie(rw_cache='./cache')
@@ -49,14 +59,11 @@ class Drone:
         self._lg_stab.add_variable('kalman.stateZ', 'float')
         self._lg_stab.add_variable('stabilizer.yaw', 'float')
 
-    def connect(self):
-        """Connects to the Crazyflie asynchronously."""
+    def connect(self, synchronous: bool = False):
+        """Connects to the Crazyflie."""
         self._connect_crazyflie()
-
-    def connect_sync(self):
-        """Connects to the Crazyflie synchronously."""
-        self._connect_crazyflie()
-        self._connect_event.wait()
+        if synchronous:
+            self._connect_event.wait()
 
     def disconnect(self):
         """Disconnects from the Crazyflie and stops all logging."""
@@ -89,37 +96,33 @@ class Drone:
         # TODO: wait_for_position_estimator(cf)
         return True
 
-    def takeoff(self, absolute_height_m, velocity) -> float:
+    def takeoff(self, absolute_height: float, velocity: float, synchronous: bool = False) -> float:
+        absolute_height = self._sanitize_z(absolute_height)
         self.reset_estimator()
-        duration_s = self._convert_velocity_to_time(absolute_height_m, velocity)
-        self._cf.high_level_commander.takeoff(absolute_height_m, duration_s)
-        return duration_s
+        duration = self._convert_velocity_to_time(absolute_height, velocity)
+        self._cf.high_level_commander.takeoff(absolute_height, duration)
+        if synchronous:
+            time.sleep(duration)
+        return duration
 
-    def takeoff_sync(self, absolute_height_m, velocity) -> float:
-        duration_s = self.takeoff(absolute_height_m, velocity)
-        time.sleep(duration_s)
-        return duration_s
+    def land(self, absolute_height: float, velocity: float, synchronous: bool = False) -> float:
+        absolute_height = self._sanitize_z(absolute_height)
+        duration = self._convert_velocity_to_time(absolute_height, velocity)
+        self._cf.high_level_commander.land(absolute_height, duration)
+        if synchronous:
+            time.sleep(duration)
+        return duration
 
-    def land(self, absolute_height_m, velocity) -> float:
-        duration_s = self._convert_velocity_to_time(absolute_height_m, velocity)
-        self._cf.high_level_commander.land(absolute_height_m, duration_s)
-        return duration_s
-
-    def land_sync(self, absolute_height_m, velocity) -> float:
-        duration_s = self.land(absolute_height_m, velocity)
-        time.sleep(duration_s)
-        return duration_s
-
-    def go_to(self, x, y, z, yaw, velocity, relative=False) -> float:
+    def go_to(self, x: float, y: float, z: float, yaw: float, velocity: float, relative: bool = False, synchronous: bool = False) -> float:
+        x = self._sanitize_x(x)
+        y = self._sanitize_y(y)
+        z = self._sanitize_z(z)
         distance = self._calculate_distance(x, y, z, relative)
-        duration_s = self._convert_velocity_to_time(distance, velocity)
-        self._cf.high_level_commander.go_to(x, y, z, yaw, duration_s, relative)
-        return duration_s
-
-    def go_to_sync(self, x, y, z, yaw, velocity, relative=False) -> float:
-        duration_s = self.go_to(x, y, z, yaw, velocity, relative)
-        time.sleep(duration_s)
-        return duration_s
+        duration = self._convert_velocity_to_time(distance, velocity)
+        self._cf.high_level_commander.go_to(x, y, z, yaw, duration, relative)
+        if synchronous:
+            time.sleep(duration)
+        return duration
 
     def stop(self):
         self._cf.high_level_commander.stop()
@@ -200,14 +203,35 @@ class Drone:
             keeptime -= 0.1
             time.sleep(0.1)
 
-    def _convert_velocity_to_time(self, distance, velocity, max_velocity=0.2) -> float:
+    def _convert_velocity_to_time(self, distance: float, velocity: float) -> float:
         """Converts a distance and a velocity to a time."""
-        needed_time = float(distance) / min(velocity, max_velocity)
-        return needed_time
+        duration = distance / self._sanitize_velocity(velocity)
+        return self._sanitize_duration(duration)
 
-    def _calculate_distance(self, x, y, z, relative=False) -> float:
+    def _calculate_distance(self, x: float, y: float, z: float, relative: bool = False) -> float:
         """Calculates the distance from the drone or the zero position (relative) to a given point in space."""
         start_x = 0 if relative else self.pos_x
         start_y = 0 if relative else self.pos_y
         start_z = 0 if relative else self.pos_z
         return np.sqrt((x - start_x) ** 2 + (y - start_y) ** 2 + (z - start_z) ** 2)
+
+    def _sanitize_velocity(self, velocity: float) -> float:
+        return min(velocity, self._max_velocity)
+
+    def _sanitize_duration(self, duration: float) -> float:
+        return max(duration, self._min_duration)
+
+    def _sanitize_yaw(self, yaw: float) -> float:
+        return yaw % (2 * self._max_yaw_rotations * math.pi)
+
+    def _sanitize_x(self, x: float) -> float:
+        return self._sanitize_number(x, self._arena_valid_x[0], self._arena_valid_x[1])
+
+    def _sanitize_y(self, y: float) -> float:
+        return self._sanitize_number(y, self._arena_valid_y[0], self._arena_valid_y[1])
+
+    def _sanitize_z(self, z: float) -> float:
+        return self._sanitize_number(z, self._arena_valid_z[0], self._arena_valid_z[1])
+
+    def _sanitize_number(self, value: float, min_value: float, max_value: float) -> float:
+        return min(max(value, min_value), max_value)
