@@ -9,6 +9,9 @@ from cflib.crazyflie.log import LogConfig
 from cflib.utils.callbacks import Caller
 
 
+from .arena import Arena
+
+
 class DroneState(Enum):
     IDLE = auto()
     OFFLINE = auto()
@@ -41,9 +44,7 @@ class Drone:
         self._max_velocity: float = 0.2
         self._min_duration: float = 1
         self._max_yaw_rotations: float = 1
-        self._arena_valid_x = [0, 2]
-        self._arena_valid_y = [0, 2]
-        self._arena_valid_z = [0.2, 2]
+        self._arena: Arena = Arena()
 
         # Event to asynchronously wait for the connection
         self._connect_event = threading.Event()
@@ -254,13 +255,13 @@ class Drone:
         return yaw % (2 * self._max_yaw_rotations * math.pi)
 
     def _sanitize_x(self, x: float) -> float:
-        return self._sanitize_number(x, self._arena_valid_x[0], self._arena_valid_x[1])
+        return self._sanitize_number(x, self._arena.min_x, self._arena.max_x)
 
     def _sanitize_y(self, y: float) -> float:
-        return self._sanitize_number(y, self._arena_valid_y[0], self._arena_valid_y[1])
+        return self._sanitize_number(y, self._arena.min_y, self._arena.max_y)
 
     def _sanitize_z(self, z: float) -> float:
-        return self._sanitize_number(z, self._arena_valid_z[0], self._arena_valid_z[1])
+        return self._sanitize_number(z, self._arena.min_z, self._arena.max_z)
 
     def _sanitize_number(self, value: float, min_value: float, max_value: float) -> float:
         return min(max(value, min_value), max_value)

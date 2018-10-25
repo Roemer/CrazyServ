@@ -22,6 +22,19 @@ def hello():
     return "Welcome to CrazyServ!"
 
 
+@app.route("/api/arena")
+def arena():
+    arena = Arena()
+    return jsonify({
+        'min_x': arena.min_x,
+        'max_x': arena.max_x,
+        'min_y': arena.min_y,
+        'max_y': arena.max_y,
+        'min_z': arena.min_z,
+        'max_z': arena.max_z
+    })
+
+
 @app.route("/api/<swarm_id>/status")
 def status(swarm_id):
     swarm = swarm_manager.get_swarm(swarm_id)
