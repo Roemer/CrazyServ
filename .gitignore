@@ -1,6 +1,9 @@
 # Visual Studio Code files
 .vscode/
 
+# Visual Studio files
+.vs/
+
 # Python virtual environment
 crazyserv-env/
 
@@ -9,3 +12,10 @@ __pycache__/
 
 # Crazyflie cache
 cache/
+
+# Build output
+bin/
+obj/
+
+# NuGet packages
+packages/
