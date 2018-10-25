@@ -36,6 +36,7 @@ class Drone:
         self.pos_y: float = 0
         self.pos_z: float = 0
         self.yaw: float = 0
+        self.battery_voltage: float = 0
         self.is_connected: bool = False
         self.status: DroneState = DroneState.OFFLINE
         self.link_uri: str = "radio://0/" + drone_id + "/" + bandwidth
@@ -66,6 +67,7 @@ class Drone:
         self._log_config_1.add_variable('kalman.varPX', 'float')
         self._log_config_1.add_variable('kalman.varPY', 'float')
         self._log_config_1.add_variable('kalman.varPZ', 'float')
+        self._log_config_1.add_variable('pm.vbat', 'float')
         self._log_config_2 = LogConfig(name='DroneLog_2', period_in_ms=500)
         self._log_config_2.add_variable('kalman.stateX', 'float')
         self._log_config_2.add_variable('kalman.stateY', 'float')
@@ -98,7 +100,9 @@ class Drone:
             "y": self.pos_y,
             "z": self.pos_z,
             "yaw": self.yaw,
-            "status": self.status.name
+            "status": self.status.name,
+            "battery_voltage": self.battery_voltage,
+            "battery_percentage:": (self.battery_voltage - 3.4) / (4.18 - 3.4) * 100
         }
 
     def reset_estimator(self) -> bool:
@@ -208,6 +212,7 @@ class Drone:
         self.var_x = data['kalman.varPX']
         self.var_y = data['kalman.varPY']
         self.var_z = data['kalman.varPZ']
+        self.battery_voltage = data['pm.vbat']
 
     def _log_config_2_data(self, timestamp, data, logconf):
         """Callback from the log API when data arrives."""
