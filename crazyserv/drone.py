@@ -89,6 +89,11 @@ class Drone:
         self._cf.param.set_value('commander.enHighLevel', '1')
         time.sleep(0.1)
 
+    def disable_motion_tracking(self):
+        """Disables to motion control (x/y) from the flow-deck."""
+        self._cf.param.set_value('motion.disable', '1')
+        time.sleep(0.1)
+
     def get_status(self) -> str:
         """Gets various information of the drone."""
         return {
@@ -180,6 +185,8 @@ class Drone:
     def _connected(self, link_uri):
         """This callback is called when the Crazyflie has been connected and the TOCs have been downloaded."""
         print('Connected to %s' % link_uri)
+        # Setup parameters
+        self.disable_motion_tracking()
         # Add the logger
         self._cf.log.add_config(self._log_config_1)
         self._cf.log.add_config(self._log_config_2)
