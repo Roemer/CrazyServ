@@ -101,8 +101,8 @@ class Drone:
             "var_x": self.var_x,
             "var_y": self.var_y,
             "var_z": self.var_z,
-            "x": self.pos_x,
-            "y": self.pos_y,
+            "x": self._arena.transform_x_inverse(self.pos_x),
+            "y": self._arena.transform_y_inverse(self.pos_y),
             "z": self.pos_z,
             "yaw": self.yaw,
             "status": self.status.name,
@@ -145,9 +145,9 @@ class Drone:
         }
 
     def go_to(self, x: float, y: float, z: float, yaw: float, velocity: float, relative: bool = False, synchronous: bool = False) -> float:
-        x = self._sanitize_x(x, relative)
-        y = self._sanitize_y(y, relative)
-        z = self._sanitize_z(z, relative)
+        x = self._sanitize_x(x)
+        y = self._sanitize_y(y)
+        z = self._sanitize_z(z)
         yaw = self._sanitize_yaw(yaw)
         distance = self._calculate_distance(x, y, z, relative)
         duration = self._convert_velocity_to_time(distance, velocity)
@@ -290,9 +290,8 @@ class Drone:
         sanitized_y = self._sanitize_number(target_y, self._arena.min_y, self._arena.max_y)
         return self._arena.transform_y(sanitized_y)
 
-    def _sanitize_z(self, z: float, relative: bool) -> float:
-        target_z = (self.pos_z + z) if relative else z
-        return self._sanitize_number(target_z, self._arena.min_z, self._arena.max_z)
+    def _sanitize_z(self, z: float) -> float:
+        return self._sanitize_number(z, self._arena.min_z, self._arena.max_z)
 
     def _sanitize_number(self, value: float, min_value: float, max_value: float) -> float:
         return min(max(value, min_value), max_value)

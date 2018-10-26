@@ -6,9 +6,9 @@ parameters:
     type: string
     description: ID of the swarm
   - name: arena_id
-    in: path
+    in: query
     type: number
-    format: string
+    format: integer
     description: ID of the arena
   
 responses:

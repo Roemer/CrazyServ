@@ -33,7 +33,7 @@ def hello():
 @app.route("/api/arena")
 @swag_from("static/swagger-doc/arena.yml")
 def arena():
-    arena = Arena()
+    arena = Arena(0)
     return jsonify({
         'min_x': arena.min_x,
         'max_x': arena.max_x,
@@ -143,11 +143,10 @@ def goto(swarm_id, drone_id):
     z = float(is_none(request.args.get("z"), default_start_z))
     yaw = float(is_none(request.args.get("yaw"), default_yaw))
     velocity = float(is_none(request.args.get("v"), default_velocity))
-    relative = bool(is_none(request.args.get("r"), 0))
     drone = swarm_manager.get_drone(swarm_id, drone_id)
     if (drone is None):
         abort(404, description="Drone not found.")
-    go_to_result = drone.go_to(x, y, z, yaw, velocity, relative)
+    go_to_result = drone.go_to(x, y, z, yaw, velocity)
     return jsonify(go_to_result)
 
 
@@ -164,7 +163,7 @@ def shutdown():
 
 @app.route('/api/<swarm_id>/reset_package_generator')
 @swag_from("static/swagger-doc/reset_package_generator.yml")
-def reset_coordinate_generator(swarm_id):
+def reset_package_generator(swarm_id):
     seed = int(is_none(request.args.get("seed"), 1))
     result = package_generator.initialize_swarm(swarm_id, seed)
     return jsonify({'success': result})
@@ -174,8 +173,9 @@ def reset_coordinate_generator(swarm_id):
 @swag_from("static/swagger-doc/register_swarm.yml")
 def register_swarm(swarm_id):
     arena_id = int(request.args.get("arena_id"))
+    seed = int(is_none(request.args.get("seed"), 1))
     result = swarm_manager.register_swarm(swarm_id, arena_id)
-    reset_coordinate_generator(swarm_id)
+    package_generator.initialize_swarm(swarm_id, seed)
     return jsonify({'success': result})
 
 
