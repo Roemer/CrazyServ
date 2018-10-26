@@ -1,4 +1,3 @@
-from flasgger import Swagger
 import platform
 from flask import Flask, request, jsonify, abort
 from flasgger import Swagger, swag_from
