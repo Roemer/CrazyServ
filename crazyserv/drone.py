@@ -39,7 +39,7 @@ class Drone:
         self.battery_voltage: float = 0
         self.is_connected: bool = False
         self.status: DroneState = DroneState.OFFLINE
-        self.link_uri: str = "radio://" + radio_id + "/" + channel + "/" + data_rate + "/" + address
+        self.link_uri: str = "radio://" + str(radio_id) + "/" + str(channel) + "/" + data_rate + "/" + address
 
         # Initialize limits
         self._max_velocity: float = 0.2
