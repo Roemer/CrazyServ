@@ -30,6 +30,7 @@ def hello():
 
 
 @app.route("/api/arena")
+@swag_from("static/swagger-doc/arena.yml")
 def arena():
     arena = Arena()
     return jsonify({
@@ -43,7 +44,7 @@ def arena():
 
 
 @app.route("/api/<swarm_id>/status")
-@swag_from('static/swagger-doc/status.yml')
+@swag_from("static/swagger-doc/swarm_status.yml")
 def status(swarm_id: str):
     swarm = swarm_manager.get_swarm(swarm_id)
     if swarm is None:
@@ -55,6 +56,7 @@ def status(swarm_id: str):
 
 
 @app.route("/api/<swarm_id>/<drone_id>/status")
+@swag_from("static/swagger-doc/swarm_drone_status.yml")
 def drone_status(swarm_id, drone_id):
     swarm = swarm_manager.get_swarm(swarm_id)
     if swarm is None:
@@ -66,6 +68,7 @@ def drone_status(swarm_id, drone_id):
 
 
 @app.route("/api/<swarm_id>/<drone_id>/connect")
+@swag_from("static/swagger-doc/connect.yml")
 def connect(swarm_id, drone_id):
     radio_id = int(is_none(request.args.get("r"), 0))
     channel = int(is_none(request.args.get("c"), 80))
@@ -81,12 +84,14 @@ def connect(swarm_id, drone_id):
 
 
 @app.route("/api/<swarm_id>/<drone_id>/disconnect")
+@swag_from("static/swagger-doc/disconnect.yml")
 def disconnect(swarm_id, drone_id):
     drone_removed = swarm_manager.remove_drone(swarm_id, drone_id)
     return jsonify({'success': drone_removed})
 
 
 @app.route("/api/<swarm_id>/<drone_id>/calibrate")
+@swag_from("static/swagger-doc/calibrate.yml")
 def calibrate(swarm_id, drone_id):
     drone = swarm_manager.get_drone(swarm_id, drone_id)
     if (drone is None):
@@ -96,6 +101,7 @@ def calibrate(swarm_id, drone_id):
 
 
 @app.route("/api/<swarm_id>/<drone_id>/takeoff")
+@swag_from("static/swagger-doc/takeoff.yml")
 def takeoff(swarm_id, drone_id):
     z = float(is_none(request.args.get("z"), default_start_z))
     v = float(is_none(request.args.get("v"), default_velocity))
@@ -107,6 +113,7 @@ def takeoff(swarm_id, drone_id):
 
 
 @app.route("/api/<swarm_id>/<drone_id>/land")
+@swag_from("static/swagger-doc/land.yml")
 def land(swarm_id, drone_id):
     z = float(is_none(request.args.get("z"), default_land_z))
     v = float(is_none(request.args.get("v"), default_velocity))
@@ -118,6 +125,7 @@ def land(swarm_id, drone_id):
 
 
 @app.route("/api/<swarm_id>/<drone_id>/stop")
+@swag_from("static/swagger-doc/stop.yml")
 def stop(swarm_id, drone_id):
     drone = swarm_manager.get_drone(swarm_id, drone_id)
     if (drone is None):
@@ -127,6 +135,7 @@ def stop(swarm_id, drone_id):
 
 
 @app.route("/api/<swarm_id>/<drone_id>/goto")
+@swag_from("static/swagger-doc/goto.yml")
 def goto(swarm_id, drone_id):
     x = float(request.args.get("x"))
     y = float(request.args.get("y"))
@@ -142,6 +151,7 @@ def goto(swarm_id, drone_id):
 
 
 @app.route('/shutdown', methods=['GET'])
+@swag_from("static/swagger-doc/shutdown.yml")
 def shutdown():
     # Cleanup
     for swarm in swarm_manager.swarms:

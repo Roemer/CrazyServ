@@ -1,0 +1,7 @@
+Get the properties of the arena
+---
+responses:
+  200:
+    description: Arena dimensions
+    schema:
+      $ref: /static/swagger-doc/arena_stats.yml

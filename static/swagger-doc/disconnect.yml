@@ -1,0 +1,16 @@
+Disconnects from a drone
+---
+parameters:
+  - name: swarm_id
+    in: path
+    type: string
+    description: ID of the swarm
+  - name: drone_id
+    in: path
+    type: string
+    description: ID of the drone
+responses:
+  200:
+    description: Disconnection success status
+    schema:
+      $ref: /static/swagger-doc/success.yml

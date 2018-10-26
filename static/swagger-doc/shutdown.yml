@@ -1,0 +1,7 @@
+Stop a drone
+---
+responses:
+  200:
+    description: Server shutting down...
+    schema:
+      type: string
