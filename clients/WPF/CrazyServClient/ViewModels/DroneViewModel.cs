@@ -9,9 +9,9 @@ namespace CrazyServClient.ViewModels
 {
     public class DroneViewModel : CanvasItemViewModel
     {
-        public int Id
+        public string Id
         {
-            get => GetValue<int>();
+            get => GetValue<string>();
             set => SetValue(value);
         }
 

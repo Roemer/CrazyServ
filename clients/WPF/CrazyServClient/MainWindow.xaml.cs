@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Input;
 using CrazyServClient.ViewModels;
 
@@ -24,9 +23,18 @@ namespace CrazyServClient
             _viewModel.Address = "E7E7E7E7E7";
             _viewModel.DataRate = "2M";
 
-            Task.Run(() => _viewModel.InitArena()).Wait();
-
             DataContext = _viewModel;
+
+            Loaded += OnLoaded;
+        }
+
+        private async void OnLoaded(object sender, RoutedEventArgs e)
+        {
+            _viewModel.StatusBarText = "Loading Arena...";
+            await _viewModel.Arena.Update();
+            _viewModel.StatusBarText = "Arena initialized";
+            // Initialize anchors
+
         }
 
         private void Ic_OnSizeChanged(object sender, SizeChangedEventArgs e)

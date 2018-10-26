@@ -6,6 +6,7 @@ using System.Windows.Input;
 using CrazyServClient.Core;
 using CrazyServLib;
 using CrazyServLib.ApiObjects;
+using Arena = CrazyServLib.Models.Arena;
 
 namespace CrazyServClient.ViewModels
 {
@@ -20,7 +21,13 @@ namespace CrazyServClient.ViewModels
         public ICommand LandCommand { get; }
         public ICommand StopCommand { get; }
 
-        public Arena Arena { get; private set; }
+        public Arena Arena { get; } = new Arena();
+
+        public string StatusBarText
+        {
+            get => GetValue<string>();
+            set => SetValue(value);
+        }
 
         public double CanvasWidth
         {
@@ -124,12 +131,7 @@ namespace CrazyServClient.ViewModels
             });
         }
 
-        public async Task InitArena()
-        {
-            Arena = await CrazyServApi.Arena();
-        }
-
-        public async Task SendDroneTo(Point targetPosition)
+        public async Task<GoToResult> SendDroneTo(Point targetPosition)
         {
             var canvasXMin = CanvasWidth * CanvasReduction;
             var canvasXMax = CanvasWidth * (1 - CanvasReduction);
@@ -140,7 +142,7 @@ namespace CrazyServClient.ViewModels
             var newY = (targetPosition.Y - canvasYMin) * (Arena.MaxY - Arena.MinY) / (canvasYMax - canvasYMin);
 
             Console.WriteLine($"Send drone to: {newX}/{newY}");
-            CrazyServApi.GoTo(SwarmName, DroneId, newX, newY, 1, 0, 0.2);
+            return await CrazyServApi.GoTo(SwarmName, DroneId, newX, newY, 1, 0, 0.2);
         }
     }
 }

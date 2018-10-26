@@ -1,20 +1,20 @@
 ﻿using System.Threading.Tasks;
-using CrazyServLib;
 using CrazyServLib.ApiObjects;
 
-namespace CrazyServClient.Models
+namespace CrazyServLib.Models
 {
     public class Drone
     {
-        public Drone(Swarm swarm)
+        public Drone(string id, Swarm swarm)
         {
+            Id = id;
             Swarm = swarm;
         }
 
         /// <summary>
         /// The id of the drone.
         /// </summary>
-        public string Id { get; set; }
+        public string Id { get; }
 
         /// <summary>
         /// The swarm that the drone belongs to.
@@ -41,34 +41,44 @@ namespace CrazyServClient.Models
         /// </summary>
         public double BatteryPercentage { get; private set; }
 
-        public void Takeoff(double z, double velocity)
+        public async Task<TakeoffLandResult> Takeoff(double z, double velocity)
         {
-            CrazyServApi.Takeoff(Swarm.Id, Id, z, velocity);
+            return await CrazyServApi.Takeoff(Swarm.Id, Id, z, velocity);
         }
 
-        public void Land(double z, double velocity)
+        public async Task<TakeoffLandResult> Land(double z, double velocity)
         {
-            CrazyServApi.Land(Swarm.Id, Id, z, velocity);
+            return await CrazyServApi.Land(Swarm.Id, Id, z, velocity);
         }
 
-        public void GoTo(double x, double y, double z, double velocity, double yaw = 0, bool relative = false)
+        public async Task<GoToResult> GoTo(double x, double y, double z, double velocity, double yaw = 0, bool relative = false)
         {
-            CrazyServApi.GoTo(Swarm.Id, Id, x, y, z, velocity, yaw, relative);
+            return await CrazyServApi.GoTo(Swarm.Id, Id, x, y, z, velocity, yaw, relative);
         }
 
-        public void Stop()
+        public async Task<SuccessResult> Calibrate()
         {
-            CrazyServApi.Stop(Swarm.Id, Id);
+            return await CrazyServApi.Calibrate(Swarm.Id, Id);
+        }
+
+        public async Task<DroneStatus> Stop()
+        {
+            return await CrazyServApi.Stop(Swarm.Id, Id);
         }
 
         public async Task<DroneStatus> UpdateStatus()
         {
             var status = await CrazyServApi.DroneStatus(Swarm.Id, Id);
-            X = status.X;
-            Y = status.Y;
-            Z = status.Z;
-            BatteryPercentage = status.BatteryPercentage;
+            UpdateFromStatus(status);
             return status;
+        }
+
+        internal void UpdateFromStatus(DroneStatus droneStatus)
+        {
+            X = droneStatus.X;
+            Y = droneStatus.Y;
+            Z = droneStatus.Z;
+            BatteryPercentage = droneStatus.BatteryPercentage;
         }
     }
 }

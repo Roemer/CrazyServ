@@ -15,7 +15,7 @@
         </Menu>
         <StatusBar DockPanel.Dock="Bottom">
             <StatusBarItem>
-                <TextBlock Text="Hello" />
+                <TextBlock Text="{Binding StatusBarText}" />
             </StatusBarItem>
         </StatusBar>
         <Grid>
