@@ -1,0 +1,28 @@
+Command a drone to takeoff
+---
+parameters:
+  - name: swarm_id
+    in: path
+    type: string
+    description: The id of the swarm
+  - name: drone_id
+    in: path
+    type: string
+    description: The id of the drone
+  - name: z
+    in: query
+    type: number
+    format: double
+    description: Flight height
+  - name: v
+    in: query
+    type: number
+    format: double
+    description: Takeoff velocity
+responses:
+  404:
+    description: Error if drone is not found
+  200:
+    description: Estimated status of the drone for land
+    schema:
+      $ref: /static/swagger-doc/success.yml

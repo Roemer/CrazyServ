@@ -1,0 +1,47 @@
+Command a drone to move to a position
+---
+parameters:
+  - name: swarm_id
+    in: path
+    type: string
+    description: ID of the swarm
+  - name: drone_id
+    in: path
+    type: string
+    description: ID of the drone
+  - name: x
+    in: query
+    type: number
+    format: double
+    description: x-coordinate of the target
+  - name: y
+    in: query
+    type: number
+    format: double
+    description: y-coordinate of the target
+  - name: z
+    in: query
+    type: number
+    format: double
+    description: z-coordinate of the target
+  - name: yaw
+    in: query
+    type: number
+    format: double
+    description: yaw
+  - name: v
+    in: query
+    type: number
+    format: double
+    description: Movement velocity
+  - name: r
+    in: query
+    type: boolean
+    description: Target coordinates relative to current position (as opposed to relative to the arena coordinate system)
+responses:
+  404:
+    description: Error when drone is not found
+  200:
+    description: Drone movement stats
+    schema:
+      $ref: /static/swagger-doc/goto_status.yml

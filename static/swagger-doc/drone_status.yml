@@ -1,0 +1,9 @@
+type: string
+enum: 
+  - IDLE
+  - IDLE
+  - OFFLINE
+  - HOVERING
+  - STARTING
+  - LANDING
+  - NAVIGATING
