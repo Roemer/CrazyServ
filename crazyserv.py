@@ -1,5 +1,7 @@
+from flasgger import Swagger
 import platform
 from flask import Flask, request, jsonify, abort
+from flasgger import Swagger, swag_from
 import cflib
 from crazyserv import Drone
 from crazyserv import Swarm
@@ -10,6 +12,7 @@ from crazyserv import Arena
 # Globals (cough)
 ##############################
 app = Flask(__name__)
+swagger = Swagger(app)
 swarm_manager = SwarmManager()
 default_velocity = 0.2
 default_start_z = 1
@@ -40,7 +43,8 @@ def arena():
 
 
 @app.route("/api/<swarm_id>/status")
-def status(swarm_id):
+@swag_from('static/swagger-doc/status.yml')
+def status(swarm_id: str):
     swarm = swarm_manager.get_swarm(swarm_id)
     if swarm is None:
         abort(404, description="Swarm not found.")
@@ -167,8 +171,8 @@ def is_none(value, alternative):
 ##############################
 if __name__ == '__main__':
     port = 5000
-    pc_name = platform.node()
+    host = "0.0.0.0"
     # Initialize the low-level drivers (don't list the debug drivers)
     cflib.crtp.init_drivers(enable_debug_driver=False)
     # Start the web server
-    app.run(host=pc_name, debug=True, port=port)
+    app.run(host=host, debug=True, port=port)

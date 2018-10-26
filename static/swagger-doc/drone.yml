@@ -1,0 +1,8 @@
+type: object
+properties:
+  id:
+    description: The id of the drone.
+    type: string
+  x:
+    type: number
+    format: double
