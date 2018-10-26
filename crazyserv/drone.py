@@ -24,7 +24,7 @@ class DroneState(Enum):
 class Drone:
     """Represents a CrazyFlie drone."""
 
-    def __init__(self, drone_id: str, radio_id: int = 0, channel: int = 80, address: str = "E7E7E7E7E7", data_rate: str = "2M"):
+    def __init__(self, drone_id: str,  arena: Arena, radio_id: int = 0, channel: int = 80, address: str = "E7E7E7E7E7", data_rate: str = "2M"):
         """ Initializes the drone with the given uri."""
 
         # Initialize public variables
@@ -45,7 +45,7 @@ class Drone:
         self._max_velocity: float = 0.2
         self._min_duration: float = 1
         self._max_yaw_rotations: float = 1
-        self._arena: Arena = Arena()
+        self._arena = arena
 
         # Event to asynchronously wait for the connection
         self._connect_event = threading.Event()
@@ -282,11 +282,13 @@ class Drone:
 
     def _sanitize_x(self, x: float, relative: bool) -> float:
         target_x = (self.pos_x + x) if relative else x
-        return self._sanitize_number(target_x, self._arena.min_x, self._arena.max_x)
+        sanitized_x = self._sanitize_number(target_x, self._arena.min_x, self._arena.max_x)
+        return self._arena.transform_x(sanitized_x)
 
     def _sanitize_y(self, y: float, relative: bool) -> float:
         target_y = (self.pos_y + y) if relative else y
-        return self._sanitize_number(target_y, self._arena.min_y, self._arena.max_y)
+        sanitized_y = self._sanitize_number(target_y, self._arena.min_y, self._arena.max_y)
+        return self._arena.transform_y(sanitized_y)
 
     def _sanitize_z(self, z: float, relative: bool) -> float:
         target_z = (self.pos_z + z) if relative else z

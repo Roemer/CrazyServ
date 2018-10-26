@@ -170,6 +170,15 @@ def reset_coordinate_generator(swarm_id):
     return jsonify({'success': result})
 
 
+@app.route("/api/<swarm_id>/register_swarm")
+@swag_from("static/swagger-doc/register_swarm.yml")
+def register_swarm(swarm_id):
+    arena_id = int(request.args.get("arena_id"))
+    result = swarm_manager.register_swarm(swarm_id, arena_id)
+    reset_coordinate_generator(swarm_id)
+    return jsonify({'success': result})
+
+
 @app.route('/api/<swarm_id>/package')
 @swag_from("static/swagger-doc/package_order.yml")
 def coordinate(swarm_id):

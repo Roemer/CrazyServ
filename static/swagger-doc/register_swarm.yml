@@ -1,0 +1,18 @@
+Register a swarm to an arena
+---
+parameters:
+  - name: swarm_id
+    in: path
+    type: string
+    description: ID of the swarm
+  - name: arena_id
+    in: path
+    type: number
+    format: string
+    description: ID of the arena
+  
+responses:
+  200:
+    description: Register swarm in a given arena
+    schema: 
+      $ref: /static/swagger-doc/success.yml

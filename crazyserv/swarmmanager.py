@@ -2,6 +2,7 @@ from typing import Dict
 import threading
 from .drone import Drone
 from .swarm import Swarm
+from .arena import Arena
 
 
 class SwarmManager:
@@ -9,7 +10,18 @@ class SwarmManager:
 
     def __init__(self):
         self.swarms: Dict[str, Swarm] = {}
+        self.arenas = {}
         self._lock = threading.Lock()
+
+    def register_swarm(self, swarm_id, arena_id):
+        self._lock.acquire()
+        if swarm_id in self.arenas: 
+            self._lock.release()
+            return False
+        self.arenas[swarm_id] = Arena(arena_id)
+        self.swarms[swarm_id] = Swarm(swarm_id)
+        self._lock.release()
+        return True
 
     def get_swarm(self, swarm_id: str) -> Swarm:
         """Gets the swarm with the given id.
@@ -25,6 +37,11 @@ class SwarmManager:
             return None
         return self.swarms.get(swarm_id)
 
+    def get_arena(self, swarm_id: str) -> Swarm:
+        if not swarm_id in self.arenas:
+            return None
+        return self.arenas[swarm_id]
+
     def add_drone(self, swarm_id: str, drone_id: str, radio_id: int, channel: int, address: str, data_rate: str) -> Drone:
         """Adds a drone to the swarm. Creates the swarm if it does not exist yet.
 
@@ -36,8 +53,9 @@ class SwarmManager:
             Drone -- The added drone or None if adding failed.
         """
 
-        swarm = self._get_or_add_swarm(swarm_id)
-        success = swarm.add_drone(drone_id, radio_id, channel, address, data_rate)
+        swarm = self.get_swarm(swarm_id)
+        arena = self.get_arena(swarm_id)
+        success = swarm.add_drone(drone_id, arena, radio_id, channel, address, data_rate)
         if success:
             return swarm.get_drone(drone_id)
         return None
@@ -73,10 +91,3 @@ class SwarmManager:
         if swarm is None:
             return None
         return swarm.get_drone(drone_id)
-
-    def _get_or_add_swarm(self, swarm_id: str) -> Swarm:
-        self._lock.acquire()
-        if not swarm_id in self.swarms:
-            self.swarms[swarm_id] = Swarm(swarm_id)
-        self._lock.release()
-        return self.swarms.get(swarm_id)

@@ -11,7 +11,7 @@ class PackageGenerator:
         self.rng = {}
 
     def define_coordinate_pool(self):
-        arena = Arena()
+        arena = Arena(0)
         z = arena.min_z
         return np.array([[1, 1, z], [2, 2, z], [2, 3, z], [1, 1.2, z]])
 
