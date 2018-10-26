@@ -1,4 +1,4 @@
-Stop a drone
+Disconnect all drones and shutsdown the whole server.
 ---
 responses:
   200:

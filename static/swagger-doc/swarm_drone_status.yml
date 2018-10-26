@@ -4,15 +4,15 @@ parameters:
   - name: swarm_id
     in: path
     type: string
-    description: ID of the swarm.
+    description: The id of the swarm.
   - name: drone_id
     in: path
     type: string
-    description: ID of the drone.
+    description: The id of the drone.
 responses:
   404:
-    description: Either the swarm or the drone with the given id was not found
+    description: Either the swarm or the drone with the given id was not found.
   200:
     description: Drone stats
     schema:
-      $ref: /static/swagger-doc/drone_stats.yml
+      $ref: /static/swagger-doc/definitions/drone_stats.yml

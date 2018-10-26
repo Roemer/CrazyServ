@@ -1,0 +1,5 @@
+type: object
+properties:
+  success: 
+    description: The success status.
+    type: boolean

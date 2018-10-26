@@ -1,28 +1,28 @@
-Command a drone to land
+Commands a drone to land.
 ---
 parameters:
   - name: swarm_id
     in: path
     type: string
-    description: ID of the swarm
+    description: The id of the swarm.
   - name: drone_id
     in: path
     type: string
-    description: ID of the drone
+    description: The id of the drone.
   - name: z
     in: query
     type: number
     format: double
-    description: Target height of the landing area
+    description: The target height of the landing area.
   - name: v
     in: query
     type: number
     format: double
-    description: Landing velocity
+    description: The landing velocity.
 responses:
   404:
-    description: Error when drone is not found
+    description: Error when drone is not found.
   200:
-    description: Estimated landing procedure status 
+    description: Estimated landing procedure status .
     schema:
       $ref: /static/swagger-doc/land_takeoff_status.yml

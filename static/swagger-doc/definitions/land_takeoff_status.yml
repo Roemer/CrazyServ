@@ -1,0 +1,10 @@
+type: object
+properties:
+  duration:
+    description: The estimated duration to complete the action in seconds.
+    type: number
+    format: double
+  target_z:
+    description: The estimated final height.
+    type: number
+    format: double

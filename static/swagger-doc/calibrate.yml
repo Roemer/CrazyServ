@@ -1,18 +1,18 @@
-Calibrates a drone in a swarm
+Calibrates a drone in a swarm.
 ---
 parameters:
   - name: swarm_id
     in: path
     type: string
-    description: ID of the swarm
+    description: The id of the swarm.
   - name: drone_id
     in: path
     type: string
-    description: ID of the drone
+    description: The id of the drone.
 responses:
   404:
-    description: Error if drone is not found
+    description: Error if the drone is not found.
   200:
-    description: Calibration success status
+    description: Calibration success status.
     schema:
-      $ref: /static/swagger-doc/success.yml
+      $ref: /static/swagger-doc/definitions/success.yml

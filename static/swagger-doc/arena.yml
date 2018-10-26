@@ -1,7 +1,8 @@
-Get the properties of the arena
+Gets the dimensions of the arena.
 ---
 responses:
   200:
-    description: Arena dimensions
+    description: The dimensions of the arena.
     schema:
-      $ref: /static/swagger-doc/arena_stats.yml
+      $ref: /static/swagger-doc/definitions/arena_stats.yml
+      

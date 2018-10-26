@@ -1,0 +1,25 @@
+type: object
+properties:
+  duration:
+    type: number
+    format: double
+    description: Estimated time needed to reach the target in seconds.
+  target_x:
+    type: number
+    format: double
+    description: The x-coordinate of the target position.
+  target_y:
+    type: number
+    format: double
+    description: The y-coordinate of the target position.
+  target_z:
+    type: number
+    format: double
+    description: The z-coordinate of the target position.
+  target_yaw:
+    type: number
+    format: double
+    description: The target yaw in radians.
+  relative:
+    type: boolean
+    description: Target coordinates are relative to current position (as opposed to relative to the arena coordinate system).
