@@ -1,0 +1,10 @@
+type: object
+properties: 
+  coordinates: 
+    type: array
+    items: 
+      type: number
+      format: float
+  weight: 
+    type: number
+    format: integer

@@ -7,6 +7,7 @@ from crazyserv import Drone
 from crazyserv import Swarm
 from crazyserv import SwarmManager
 from crazyserv import Arena
+from crazyserv import PackageGenerator
 
 ##############################
 # Globals (cough)
@@ -14,6 +15,7 @@ from crazyserv import Arena
 app = Flask(__name__)
 swagger = Swagger(app)
 swarm_manager = SwarmManager()
+package_generator = PackageGenerator()
 default_velocity = 0.2
 default_start_z = 1
 default_land_z = 0
@@ -161,6 +163,22 @@ def shutdown():
     shutdown_server()
     return 'Server shutting down...'
 
+@app.route('/api/<swarm_id>/reset_package_generator')
+@swag_from("static/swagger-doc/reset_package_generator.yml")
+def reset_coordinate_generator(swarm_id):
+    seed = int(is_none(request.args.get("seed"), 1))
+    result = package_generator.initialize_swarm(swarm_id, seed)
+    return jsonify({'success': result})
+
+
+@app.route('/api/<swarm_id>/package')
+@swag_from("static/swagger-doc/package_order.yml")
+def coordinate(swarm_id):
+    try:
+        package = package_generator.get_package(swarm_id)
+    except:
+        abort(404, description="Swarm not found.")
+    return jsonify(package)
 
 def shutdown_server():
     func = request.environ.get('werkzeug.server.shutdown')
