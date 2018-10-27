@@ -1,6 +1,5 @@
 
 class Arena:
-
     def __init__(self):
         self.min_x: float = 0
         self.max_x: float = 2

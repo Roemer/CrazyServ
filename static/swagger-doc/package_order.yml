@@ -1,0 +1,14 @@
+Order a new package.
+---
+parameters:
+  - name: swarm_id
+    in: path
+    type: string
+    description: The id of the swarm.
+responses:
+  404:
+    description: Error when swarm is not found.
+  200:
+    description: Success status of the reset operation.
+    schema:
+      $ref: /static/swagger-doc/package.yml

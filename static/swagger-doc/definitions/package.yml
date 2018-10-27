@@ -1,0 +1,12 @@
+type: object
+properties:
+  coordinates:
+    type: array
+    items:
+      type: number
+      format: float
+      description: The coordinates where the package should be delivered.
+  weight:
+    type: number
+    format: integer
+    description: The total weight of the package.
