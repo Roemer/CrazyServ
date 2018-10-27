@@ -212,12 +212,12 @@ def register_swarm(swarm_id):
 def coordinate(swarm_id):
     package = None
     try:
-        package = package_generator.get_package(swarm_id)        
+        package = package_generator.get_package(swarm_id)
     except:
         abort(404, description="Swarm not found.")
     if package is None:
         abort(500, description="Too many parcels pending.")
-    return jsonify(package)
+    return jsonify({'id': package['id'], 'coordinates': package['coordinates'], 'weight': package['weight']})
 
 
 @app.route('/api/<swarm_id>/<drone_id>/pickup')
