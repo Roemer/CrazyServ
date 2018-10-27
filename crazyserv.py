@@ -43,6 +43,27 @@ def arena():
         'max_z': arena.max_z
     })
 
+@app.route("/api/help")
+@swag_from("static/swagger-doc/arena.yml")
+def help():
+    help_text = """
+    <html>
+    <head>
+    <title>Markdown Snippet</title>
+    </head>
+    <body>
+    In order for you to get started with flying a drone, follow these steps: </br>
+        * Register a swarm for an arena ´/api/test-swarm/register_swarm?arena_id=0&seed=12345´ </br>
+        * Connect to a drone ´/api/test-swarm/test-drone/connect?r=1&c=80&a=E7E7E7E7´ </br>
+        * Hover above ground ´/api/test-swarm/test-drone/takeoff?z=0.5&v=0.1´ </br>
+        * Go to a position ´/api/test-swarm/test-drone/goto?x=1&y=1&z=0.5&yaw=0&v=0.1´ </br>
+        * Land ´/api/test-swarm/test-drone/land?z=0.0&v=0.1´ </br>
+        * Disconnect from a drone ´/api/test-swarm/test-drone/disconnect´
+    </body>
+    </html>"""
+
+    return help_text
+
 
 @app.route("/api/<swarm_id>/status")
 @swag_from("static/swagger-doc/swarm_status.yml")
@@ -187,6 +208,7 @@ def coordinate(swarm_id):
     except:
         abort(404, description="Swarm not found.")
     return jsonify(package)
+
 
 def shutdown_server():
     func = request.environ.get('werkzeug.server.shutdown')

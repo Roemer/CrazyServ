@@ -1,17 +1,17 @@
 
 class Arena:
     def __init__(self, arena_id):
-        self.min_x: float = -2
-        self.max_x: float = 2
+        self.min_x: float = 0
+        self.max_x: float = 4
 
-        self.min_y: float = -2
-        self.max_y: float = 2
+        self.min_y: float = 0
+        self.max_y: float = 4
 
         self.min_z: float = -0.2
         self.max_z: float = 1.2
 
         self.arena_id = arena_id
-        self.arena_offsets = [[0, 0, 0], [4, 0, 0], [4, -4, 0]]
+        self.arena_offsets = [[-2, -2, 0], [2, -2, 0], [2, -6, 0]]
 
     def transform_x(self, x):
         return x + self.arena_offsets[self.arena_id][0]
