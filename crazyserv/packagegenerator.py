@@ -13,7 +13,7 @@ class PackageGenerator:
     def define_coordinate_pool(self):
         arena = Arena(0)
         z = arena.min_z
-        return np.array([[1, 1, z], [2, 2, z], [2, 3, z], [1, 1.2, z]])
+        return np.array([[2.6, 0.6, z], [2.4, 3.4, z],  [0.6, 2.2, z],  [1.4, 3.2, z],  [1., 1.6, z],  [3.6, 0.6, z],  [3.6, 3.6, z],  [3.2, 3.2, z]])
 
     def initialize_swarm(self, swarm_id, seed):
         self.rng[swarm_id] = random.Random()
@@ -27,4 +27,6 @@ class PackageGenerator:
     def get_package(self, swarm_id):
         rand = self.generate_number(swarm_id, 0, self.pool_size - 1)
         weight = self.generate_number(swarm_id, 1, self.package_weight)
-        return {'coordinates': self.coordinate_pool[rand].tolist(), 'weight': weight}
+        x = self.coordinate_pool[rand].tolist()[0]
+        y = self.coordinate_pool[rand].tolist()[1]
+        return {'id': swarm_id + '-' + x + '-' + y, 'coordinates': self.coordinate_pool[rand].tolist(), 'weight': weight}

@@ -11,4 +11,4 @@ responses:
   200:
     description: Success status of the reset operation.
     schema:
-      $ref: /static/swagger-doc/package.yml
+      $ref: /static/swagger-doc/definitions/package.yml
