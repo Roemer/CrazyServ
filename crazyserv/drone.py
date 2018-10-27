@@ -291,7 +291,9 @@ class Drone:
         return self._arena.transform_y(sanitized_y)
 
     def _sanitize_z(self, z: float, relative: bool) -> float:
-        return self._sanitize_number(z, self._arena.min_z, self._arena.max_z)
+        target_z = (self.pos_z + z) if relative else z
+        sanitized_z = self._sanitize_number(target_z, self._arena.min_z, self._arena.max_z)
+        return self._arena.transform_z(sanitized_z)
 
     def _sanitize_number(self, value: float, min_value: float, max_value: float) -> float:
         return min(max(value, min_value), max_value)
