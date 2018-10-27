@@ -1,0 +1,12 @@
+Print your delivery stats
+---
+parameters:
+  - name: swarm_id
+    in: path
+    type: string
+    description: The id of the swarm.
+responses:
+  200:
+    description: Success status of the delivery print operation.
+    schema:
+      $ref: /static/swagger-doc/definitions/success.yml

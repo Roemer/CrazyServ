@@ -41,11 +41,12 @@ def arena():
         'min_y': arena.min_y,
         'max_y': arena.max_y,
         'min_z': arena.min_z,
-        'max_z': arena.max_z
+        'max_z': arena.max_z,
+        'buildings': [[2., 2.8, 0], [1.5, 1., 0], [3.15, 0.7, 0], [3., 2., 0]]
     })
 
 @app.route("/api/help")
-@swag_from("static/swagger-doc/arena.yml")
+@swag_from("static/swagger-doc/help.yml")
 def help():
     help_text = """
     <html>
@@ -211,14 +212,19 @@ def coordinate(swarm_id):
     return jsonify(package)
 
 @app.route('/api/<swarm_id>/<drone_id>/deliver')
+@swag_from("static/swagger-doc/deliver.yml")
 def deliver(swarm_id, drone_id):
     package_id = str(request.args.get("package_id"))
     drone = swarm_manager.get_drone(swarm_id, drone_id)
-    return package_generator.deliver_package(swarm_id, package_id, drone)
+    success = package_generator.deliver_package(swarm_id, package_id, drone)
+    return jsonify({'success': success})
+
 
 @app.route('/api/<swarm_id>/print_deliveries')
+@swag_from("static/swagger-doc/print_deliveries.yml")
 def print(swarm_id):
-    return package_generator.print_deliveries(swarm_id)
+    success = package_generator.print_deliveries(swarm_id)
+    return jsonify({'success': success})
 
 
 def shutdown_server():
