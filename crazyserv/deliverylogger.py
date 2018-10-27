@@ -10,7 +10,7 @@ class DeliveryLogger:
         self.count_weight_exceeded = 0
         self.max_weight = 3
         self.drone_load = {}
-        self.sensitivity = 0.2
+        self.sensitivity = 0.25
         self.sensitivity_z = 0.1
 
     def add_package(self, swarm_id, package):
