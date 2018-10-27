@@ -20,7 +20,6 @@ class SwarmManager:
             return False
         self.arenas[swarm_id] = Arena(arena_id)
         self.swarms[swarm_id] = Swarm(swarm_id)
-        self._lock.release()
         return True
         finally:
             self._lock.release()
