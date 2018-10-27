@@ -30,12 +30,13 @@ class PackageGenerator:
         return True
 
     def generate_number(self, swarm_id, lower_limit, upper_limit):
-        if (swarm_id in self.rng):
-            return self.rng[swarm_id].randint(lower_limit, upper_limit)
+        return self.rng[swarm_id].randint(lower_limit, upper_limit)
+
+    def generate_hash(self, swarm_id):
+        return self.rng[swarm_id].getrandbits(128)
 
     def get_package(self, swarm_id):
         rand = self.generate_number(swarm_id, 0, self.pool_size - 1)
         weight = self.generate_number(swarm_id, 1, self.package_weight)
-        x = self.coordinate_pool[rand].tolist()[0]
-        y = self.coordinate_pool[rand].tolist()[1]
-        return {'id': swarm_id + '-' + x + '-' + y, 'coordinates': self.coordinate_pool[rand].tolist(), 'weight': weight}
+        id = self.generate_hash(swarm_id)
+        return {'id': id, 'coordinates': self.coordinate_pool[rand].tolist(), 'weight': weight}
