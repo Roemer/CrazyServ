@@ -7,7 +7,8 @@ properties:
     items:
       type: number
       format: float
-      description: The coordinates where the package should be delivered.
+    description: The coordinates where the package should be delivered.
+    example: [1, 1, 0.5]
   weight:
     type: number
     format: integer
