@@ -7,7 +7,7 @@ class Arena:
         self.min_y: float = 0
         self.max_y: float = 4
 
-        self.min_z: float = -0.2
+        self.min_z: float = 0.0
         self.max_z: float = 1.2
 
         self.arena_id = arena_id

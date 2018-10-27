@@ -42,9 +42,9 @@ class Drone:
         self.link_uri: str = "radio://" + str(radio_id) + "/" + str(channel) + "/" + data_rate + "/" + address
 
         # Initialize limits
-        self._max_velocity: float = 0.2
-        self._min_duration: float = 1
-        self._max_yaw_rotations: float = 1
+        self._max_velocity: float = 1.0
+        self._min_duration: float = 1.0
+        self._max_yaw_rotations: float = 1.0
         self._arena = arena
 
         # Event to asynchronously wait for the connection
