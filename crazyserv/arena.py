@@ -1,11 +1,11 @@
 
 class Arena:
     def __init__(self, arena_id):
-        self.min_x: float = 0
-        self.max_x: float = 4
+        self.min_x: float = 0.2
+        self.max_x: float = 3.8
 
-        self.min_y: float = 0
-        self.max_y: float = 4
+        self.min_y: float = 0.2
+        self.max_y: float = 3.8
 
         self.min_z: float = 0.0
         self.max_z: float = 1.2

@@ -15,13 +15,14 @@ class SwarmManager:
 
     def register_swarm(self, swarm_id, arena_id):
         self._lock.acquire()
-        if swarm_id in self.arenas: 
+        try:
+            if swarm_id in self.arenas: 
+                return False
+            self.arenas[swarm_id] = Arena(arena_id)
+            self.swarms[swarm_id] = Swarm(swarm_id)
+            return True
+        finally:
             self._lock.release()
-            return False
-        self.arenas[swarm_id] = Arena(arena_id)
-        self.swarms[swarm_id] = Swarm(swarm_id)
-        self._lock.release()
-        return True
 
     def get_swarm(self, swarm_id: str) -> Swarm:
         """Gets the swarm with the given id.
