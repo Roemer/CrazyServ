@@ -7,6 +7,7 @@ from crazyserv import Swarm
 from crazyserv import SwarmManager
 from crazyserv import Arena
 from crazyserv import PackageGenerator
+from crazyserv import DeliveryLogger
 
 ##############################
 # Globals (cough)
@@ -208,6 +209,16 @@ def coordinate(swarm_id):
     except:
         abort(404, description="Swarm not found.")
     return jsonify(package)
+
+@app.route('/api/<swarm_id>/<drone_id>/deliver')
+def deliver(swarm_id, drone_id):
+    package_id = str(request.args.get("package_id"))
+    drone = swarm_manager.get_drone(swarm_id, drone_id)
+    return package_generator.deliver_package(swarm_id, package_id, drone)
+
+@app.route('/api/<swarm_id>/print_deliveries')
+def print(swarm_id):
+    return package_generator.print_deliveries(swarm_id)
 
 
 def shutdown_server():
