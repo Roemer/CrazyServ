@@ -9,6 +9,3 @@ class Arena:
 
         self.min_z: float = -0.2
         self.max_z: float = 2
-
-    def get_min_z(self):
-        return self.min_z

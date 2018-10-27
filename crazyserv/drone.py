@@ -120,7 +120,7 @@ class Drone:
         return True
 
     def takeoff(self, absolute_height: float, velocity: float, synchronous: bool = False) -> float:
-        absolute_height = self._sanitize_z(absolute_height)
+        absolute_height = self._sanitize_z(absolute_height, False)
         self.reset_estimator()
         duration = self._convert_velocity_to_time(absolute_height, velocity)
         self._cf.high_level_commander.takeoff(absolute_height, duration)
@@ -133,7 +133,7 @@ class Drone:
         }
 
     def land(self, absolute_height: float, velocity: float, synchronous: bool = False) -> float:
-        absolute_height = self._sanitize_z(absolute_height)
+        absolute_height = self._sanitize_z(absolute_height, False)
         duration = self._convert_velocity_to_time(absolute_height, velocity)
         self._cf.high_level_commander.land(absolute_height, duration)
         self.status = DroneState.LANDING
