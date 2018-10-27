@@ -1,35 +1,35 @@
 type: object
-properties: 
-  min_x: 
+properties:
+  min_x:
     type: number
     format: double
     description: X-coordinate (min) of the arena boundary.
-  max_x: 
+  max_x:
     type: number
     format: double
     description: X-coordinate (max) of the arena boundary.
-  min_y: 
+  min_y:
     type: number
     format: double
     description: Y-coordinate (min) of the arena boundary.
-  max_y: 
+  max_y:
     type: number
     format: double
     description: Y-coordinate (max) of the arena boundary.
-  min_z: 
+  min_z:
     type: number
     format: double
     description: Z-coordinate (min) of the arena boundary.
-  max_z: 
+  max_z:
     type: number
     format: double
     description: Z-coordinate (max) of the arena boundary.
-  buildings: 
+  buildings:
     type: array
-    items: 
+    description: The coordinates of the buildings.
+    items:
       type: array
-      items: 
+      items:
         type: number
         format: float
     example: [[1, 1, 0], [1, 2, 0]]
-    

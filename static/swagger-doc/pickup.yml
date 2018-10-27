@@ -1,4 +1,4 @@
-Tells that package is now at the delivery coordinates and the drone wants to drop it.
+Tells that drone wants to pickup a package at the distribution center.
 ---
 parameters:
   - name: swarm_id
@@ -16,6 +16,6 @@ parameters:
     description: The id of the package.
 responses:
   200:
-    description: Success status of the delivery.
+    description: Success status of the pickup.
     schema:
       $ref: /static/swagger-doc/definitions/success.yml

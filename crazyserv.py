@@ -45,6 +45,7 @@ def arena():
         'buildings': [[2., 2.8, 0], [1.5, 1., 0], [3.15, 0.7, 0], [3., 2., 0]]
     })
 
+
 @app.route("/api/help")
 @swag_from("static/swagger-doc/help.yml")
 def help():
@@ -59,6 +60,9 @@ def help():
         * Connect to a drone ´/api/test-swarm/test-drone/connect?r=1&c=80&a=E7E7E7E7´ </br>
         * Hover above ground ´/api/test-swarm/test-drone/takeoff?z=0.5&v=0.1´ </br>
         * Go to a position ´/api/test-swarm/test-drone/goto?x=1&y=1&z=0.5&yaw=0&v=0.1´ </br>
+        * Order a parcel ´/api/test-swarm/package´ </br>
+        * Pickup a parcel ´/api/test-swarm/test-drone/pickup?package_id=abcd´ </br>
+        * Deliver a parcel ´/api/test-swarm/test-drone/deliver?package_id=abcd´ </br>
         * Land ´/api/test-swarm/test-drone/land?z=0.0&v=0.1´ </br>
         * Disconnect from a drone ´/api/test-swarm/test-drone/disconnect´
     </body>
@@ -184,6 +188,7 @@ def shutdown():
     shutdown_server()
     return 'Server shutting down...'
 
+
 @app.route('/api/<swarm_id>/reset_package_generator')
 @swag_from("static/swagger-doc/reset_package_generator.yml")
 def reset_package_generator(swarm_id):
@@ -207,16 +212,28 @@ def register_swarm(swarm_id):
 def coordinate(swarm_id):
     try:
         package = package_generator.get_package(swarm_id)
+        if package is None:
+            abort(500, description="Too many parcels pending.")
     except:
         abort(404, description="Swarm not found.")
     return jsonify(package)
+
+
+@app.route('/api/<swarm_id>/<drone_id>/pickup')
+@swag_from("static/swagger-doc/pickup.yml")
+def pickup(swarm_id, drone_id):
+    package_id = str(request.args.get("package_id"))
+    drone = swarm_manager.get_drone(swarm_id, drone_id)
+    success = package_generator.pickup(swarm_id, package_id, drone)
+    return jsonify({'success': success})
+
 
 @app.route('/api/<swarm_id>/<drone_id>/deliver')
 @swag_from("static/swagger-doc/deliver.yml")
 def deliver(swarm_id, drone_id):
     package_id = str(request.args.get("package_id"))
     drone = swarm_manager.get_drone(swarm_id, drone_id)
-    success = package_generator.deliver_package(swarm_id, package_id, drone)
+    success = package_generator.deliver(swarm_id, package_id, drone)
     return jsonify({'success': success})
 
 

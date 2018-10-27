@@ -1,8 +1,8 @@
-Gets the dimensions of the arena.
+Gets the dimensions of the arena and the coordinates of the buildings.
 ---
 responses:
   200:
-    description: The dimensions of the arena.
+    description: The dimensions of the arena and the coordinates of the buildings.
     schema:
       $ref: /static/swagger-doc/definitions/arena_stats.yml
       

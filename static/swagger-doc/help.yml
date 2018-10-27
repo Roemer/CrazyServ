@@ -1,6 +1,5 @@
 Shows an example of one package delivery cycle
 ---
-
 responses:
   200:
     description: Show help text

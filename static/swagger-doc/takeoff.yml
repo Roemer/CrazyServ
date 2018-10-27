@@ -25,4 +25,4 @@ responses:
   200:
     description: Estimated status of the drone for land.
     schema:
-      $ref: /static/swagger-doc/definitions/success.yml
+      $ref: /static/swagger-doc/definitions/land_takeoff_status.yml
