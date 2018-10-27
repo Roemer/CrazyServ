@@ -48,7 +48,7 @@ class PackageGenerator:
         weight = self.package_weights[weightIndex]
         id = self.generate_hash(swarm_id)
 
-        package = {'id': str(id), 'coordinates': self.coordinate_pool[rand].tolist(), 'weight': weight, 'drone': None}
+        package = {'id': str(id), 'coordinates': self.coordinate_pool[rand].tolist(), 'weight': weight, 'drone': None, 'picked': False}
 
         self.delivery_loggers[swarm_id].add_package(swarm_id, package)
         return package

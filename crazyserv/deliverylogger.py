@@ -22,13 +22,17 @@ class DeliveryLogger:
         if package_id not in self.log:
             return False
         package = self.log[package_id]
+        if package['picked']:
+            return False
         if self.drone_is_in_landing_zone(drone, [2.2, 1.6]):
-            if self.drone_load[drone.id] > self.max_weight:
+            new_drone_load = self.drone_load.get(drone.id, 0) + package['weight']
+            if new_drone_load > self.max_weight:
                 self.count_weight_exceeded += 1
                 # Enable to following line to enforce the correct weight limit
                 # return False
             package['drone'] = drone.id
-            self.drone_load[drone.id] += package.weight
+            package['picked'] = True
+            self.drone_load[drone.id] = new_drone_load
             return True
         return False
 
@@ -41,7 +45,7 @@ class DeliveryLogger:
         if self.drone_is_in_landing_zone(drone, package['coordinates']):
             self.log.pop(package_id)
             self.count += 1
-            self.drone_load[drone.id] -= package.weight
+            self.drone_load[drone.id] -= package['weight']
             return True
         return False
 

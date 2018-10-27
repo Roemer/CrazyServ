@@ -210,12 +210,13 @@ def register_swarm(swarm_id):
 @app.route('/api/<swarm_id>/package')
 @swag_from("static/swagger-doc/package_order.yml")
 def coordinate(swarm_id):
+    package = None
     try:
-        package = package_generator.get_package(swarm_id)
-        if package is None:
-            abort(500, description="Too many parcels pending.")
+        package = package_generator.get_package(swarm_id)        
     except:
         abort(404, description="Swarm not found.")
+    if package is None:
+        abort(500, description="Too many parcels pending.")
     return jsonify(package)
 
 
