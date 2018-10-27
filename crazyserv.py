@@ -46,7 +46,7 @@ def arena():
     })
 
 @app.route("/api/help")
-@swag_from("static/swagger-doc/arena.yml")
+@swag_from("static/swagger-doc/help.yml")
 def help():
     help_text = """
     <html>
@@ -221,6 +221,7 @@ def deliver(swarm_id, drone_id):
 
 
 @app.route('/api/<swarm_id>/print_deliveries')
+@swag_from("static/swagger-doc/print_deliveries.yml")
 def print(swarm_id):
     success = package_generator.print_deliveries(swarm_id)
     return jsonify({'success': success})
