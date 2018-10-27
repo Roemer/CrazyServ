@@ -32,6 +32,6 @@ class DeliveryLogger:
     # TODO: thread-safe implementation of file operation
     def print_deliveries(self):
         log_file = open(self.swarm_id + "_results.txt", "w")
-        log_file.write("Swarm " + self.swarm_id + " has " + str(self.count) + " deliveries")
+        log_file.write("Swarm " + self.swarm_id + " has " + str(self.count) + " deliveries and " + str(len(self.log)) + " still pending.")
         log_file.close()
         return True
