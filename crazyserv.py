@@ -42,7 +42,7 @@ def arena():
         'max_y': arena.max_y,
         'min_z': arena.min_z,
         'max_z': arena.max_z,
-        'buildings': [[0, 1, 0], [0, 1, 1]]
+        'buildings': [[2., 2.8, 0], [1.5, 1., 0], [3.15, 0.7, 0], [3., 2., 0]]
     })
 
 @app.route("/api/help")
