@@ -157,8 +157,8 @@ class Drone:
             time.sleep(duration)
         return {
             "duration": duration,
-            "target_x": x,
-            "target_y": y,
+            "target_x": self._arena.transform_x_inverse(x),
+            "target_y": self._arena.transform_y_inverse(y),
             "target_z": z,
             "target_yaw": yaw,
             "relative": relative
