@@ -34,3 +34,4 @@ class DeliveryLogger:
         log_file = open(self.swarm_id + "_results.txt", "w")
         log_file.write("Swarm " + self.swarm_id + " has " + str(self.count) + " deliveries")
         log_file.close()
+        return True
