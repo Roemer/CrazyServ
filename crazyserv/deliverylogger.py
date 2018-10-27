@@ -28,8 +28,7 @@ class DeliveryLogger:
             new_drone_load = self.drone_load.get(drone.id, 0) + package['weight']
             if new_drone_load > self.max_weight:
                 self.count_weight_exceeded += 1
-                # Enable to following line to enforce the correct weight limit
-                # return False
+                return False
             package['drone'] = drone.id
             package['picked'] = True
             self.drone_load[drone.id] = new_drone_load

@@ -35,6 +35,8 @@ class Drone:
         self.pos_x: float = 0
         self.pos_y: float = 0
         self.pos_z: float = 0
+        self.pitch: float = 0
+        self.roll: float = 0
         self.yaw: float = 0
         self.battery_voltage: float = 0
         self.is_connected: bool = False
@@ -68,11 +70,14 @@ class Drone:
         self._log_config_1.add_variable('kalman.varPY', 'float')
         self._log_config_1.add_variable('kalman.varPZ', 'float')
         self._log_config_1.add_variable('pm.vbat', 'float')
-        self._log_config_2 = LogConfig(name='DroneLog_2', period_in_ms=500)
+        self._log_config_2 = LogConfig(name='DroneLog_2', period_in_ms=100)
         self._log_config_2.add_variable('kalman.stateX', 'float')
         self._log_config_2.add_variable('kalman.stateY', 'float')
         self._log_config_2.add_variable('kalman.stateZ', 'float')
-        self._log_config_2.add_variable('stabilizer.yaw', 'float')
+        self._log_config_3 = LogConfig(name='DroneLog_3', period_in_ms=500)
+        self._log_config_3.add_variable('stabilizer.pitch', 'float')
+        self._log_config_3.add_variable('stabilizer.roll', 'float')
+        self._log_config_3.add_variable('stabilizer.yaw', 'float')
 
     def connect(self, synchronous: bool = False):
         """Connects to the Crazyflie."""
@@ -104,6 +109,8 @@ class Drone:
             "x": self._arena.transform_x_inverse(self.pos_x),
             "y": self._arena.transform_y_inverse(self.pos_y),
             "z": self.pos_z,
+            "pitch": self.pitch,
+            "roll": self.roll,
             "yaw": self.yaw,
             "status": self.status.name,
             "battery_voltage": self.battery_voltage,
@@ -177,6 +184,7 @@ class Drone:
         # Stop the loggers
         self._log_config_1.stop()
         self._log_config_2.stop()
+        self._log_config_3.stop()
         # Shutdown the rotors
         self._shutdown()
         # Disconnect
@@ -190,15 +198,19 @@ class Drone:
         # Add the logger
         self._cf.log.add_config(self._log_config_1)
         self._cf.log.add_config(self._log_config_2)
+        self._cf.log.add_config(self._log_config_3)
         # This callback will receive the data
         self._log_config_1.data_received_cb.add_callback(self._log_config_1_data)
         self._log_config_2.data_received_cb.add_callback(self._log_config_2_data)
+        self._log_config_3.data_received_cb.add_callback(self._log_config_3_data)
         # This callback will be called on errors
         self._log_config_1.error_cb.add_callback(self._log_config_error)
         self._log_config_2.error_cb.add_callback(self._log_config_error)
+        self._log_config_3.error_cb.add_callback(self._log_config_error)
         # Start the logging
         self._log_config_1.start()
         self._log_config_2.start()
+        self._log_config_3.start()
         # Set the connected event
         self._connect_event.set()
         self.is_connected = True
@@ -240,6 +252,10 @@ class Drone:
         self.pos_x = data['kalman.stateX']
         self.pos_y = data['kalman.stateY']
         self.pos_z = data['kalman.stateZ']
+
+    def _log_config_3_data(self, timestamp, data, logconf):
+        self.pitch = data['stabilizer.pitch']
+        self.roll = data['stabilizer.roll']
         self.yaw = data['stabilizer.yaw']
 
     def _unlock(self):
