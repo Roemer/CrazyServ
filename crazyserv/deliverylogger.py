@@ -11,7 +11,7 @@ class DeliveryLogger:
         self.max_weight = 3
         self.drone_load = {}
         self.sensitivity = 0.25
-        self.sensitivity_z = 0.1
+        self.sensitivity_z = 0.2
 
     def add_package(self, swarm_id, package):
         package_id = package['id']
