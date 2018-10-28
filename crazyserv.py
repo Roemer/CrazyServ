@@ -192,7 +192,7 @@ def shutdown():
 @app.route('/api/<swarm_id>/reset_package_generator')
 @swag_from("static/swagger-doc/reset_package_generator.yml")
 def reset_package_generator(swarm_id):
-    seed = int(is_none(request.args.get("seed"), 1))
+    seed = 467859
     result = package_generator.initialize_swarm(swarm_id, seed)
     return jsonify({'success': result})
 
@@ -201,7 +201,7 @@ def reset_package_generator(swarm_id):
 @swag_from("static/swagger-doc/register_swarm.yml")
 def register_swarm(swarm_id):
     arena_id = int(request.args.get("arena_id"))
-    seed = int(is_none(request.args.get("seed"), 1))
+    seed = 467859
     result = swarm_manager.register_swarm(swarm_id, arena_id)
     package_generator.initialize_swarm(swarm_id, seed)
     return jsonify({'success': result})
