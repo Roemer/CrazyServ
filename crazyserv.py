@@ -7,6 +7,7 @@ from crazyserv import Swarm
 from crazyserv import SwarmManager
 from crazyserv import Arena
 from crazyserv import PackageGenerator
+from crazyserv import DeliveryLogger
 
 ##############################
 # Globals (cough)
@@ -33,15 +34,41 @@ def hello():
 @app.route("/api/arena")
 @swag_from("static/swagger-doc/arena.yml")
 def arena():
-    arena = Arena()
+    arena = Arena(0)
     return jsonify({
         'min_x': arena.min_x,
         'max_x': arena.max_x,
         'min_y': arena.min_y,
         'max_y': arena.max_y,
         'min_z': arena.min_z,
-        'max_z': arena.max_z
+        'max_z': arena.max_z,
+        'buildings': [[2., 2.8, 0], [1.5, 1., 0], [3.15, 0.7, 0], [3., 2., 0]]
     })
+
+
+@app.route("/api/help")
+@swag_from("static/swagger-doc/help.yml")
+def help():
+    help_text = """
+    <html>
+    <head>
+    <title>Markdown Snippet</title>
+    </head>
+    <body>
+    In order for you to get started with flying a drone, follow these steps: </br>
+        * Register a swarm for an arena ´/api/test-swarm/register_swarm?arena_id=0&seed=12345´ </br>
+        * Connect to a drone ´/api/test-swarm/test-drone/connect?r=1&c=80&a=E7E7E7E7´ </br>
+        * Hover above ground ´/api/test-swarm/test-drone/takeoff?z=0.5&v=0.1´ </br>
+        * Go to a position ´/api/test-swarm/test-drone/goto?x=1&y=1&z=0.5&yaw=0&v=0.1´ </br>
+        * Order a parcel ´/api/test-swarm/package´ </br>
+        * Pickup a parcel ´/api/test-swarm/test-drone/pickup?package_id=abcd´ </br>
+        * Deliver a parcel ´/api/test-swarm/test-drone/deliver?package_id=abcd´ </br>
+        * Land ´/api/test-swarm/test-drone/land?z=0.0&v=0.1´ </br>
+        * Disconnect from a drone ´/api/test-swarm/test-drone/disconnect´
+    </body>
+    </html>"""
+
+    return help_text
 
 
 @app.route("/api/<swarm_id>/status")
@@ -143,11 +170,10 @@ def goto(swarm_id, drone_id):
     z = float(is_none(request.args.get("z"), default_start_z))
     yaw = float(is_none(request.args.get("yaw"), default_yaw))
     velocity = float(is_none(request.args.get("v"), default_velocity))
-    relative = bool(is_none(request.args.get("r"), 0))
     drone = swarm_manager.get_drone(swarm_id, drone_id)
     if (drone is None):
         abort(404, description="Drone not found.")
-    go_to_result = drone.go_to(x, y, z, yaw, velocity, relative)
+    go_to_result = drone.go_to(x, y, z, yaw, velocity)
     return jsonify(go_to_result)
 
 
@@ -162,22 +188,62 @@ def shutdown():
     shutdown_server()
     return 'Server shutting down...'
 
+
 @app.route('/api/<swarm_id>/reset_package_generator')
 @swag_from("static/swagger-doc/reset_package_generator.yml")
-def reset_coordinate_generator(swarm_id):
-    seed = int(is_none(request.args.get("seed"), 1))
+def reset_package_generator(swarm_id):
+    seed = 467859
     result = package_generator.initialize_swarm(swarm_id, seed)
+    return jsonify({'success': result})
+
+
+@app.route("/api/<swarm_id>/register_swarm")
+@swag_from("static/swagger-doc/register_swarm.yml")
+def register_swarm(swarm_id):
+    arena_id = int(request.args.get("arena_id"))
+    seed = 467859
+    result = swarm_manager.register_swarm(swarm_id, arena_id)
+    package_generator.initialize_swarm(swarm_id, seed)
     return jsonify({'success': result})
 
 
 @app.route('/api/<swarm_id>/package')
 @swag_from("static/swagger-doc/package_order.yml")
 def coordinate(swarm_id):
+    package = None
     try:
         package = package_generator.get_package(swarm_id)
     except:
         abort(404, description="Swarm not found.")
-    return jsonify(package)
+    if package is None:
+        abort(500, description="Too many parcels pending.")
+    return jsonify({'id': package['id'], 'coordinates': package['coordinates'], 'weight': package['weight']})
+
+
+@app.route('/api/<swarm_id>/<drone_id>/pickup')
+@swag_from("static/swagger-doc/pickup.yml")
+def pickup(swarm_id, drone_id):
+    package_id = str(request.args.get("package_id"))
+    drone = swarm_manager.get_drone(swarm_id, drone_id)
+    success = package_generator.pickup(swarm_id, package_id, drone)
+    return jsonify({'success': success})
+
+
+@app.route('/api/<swarm_id>/<drone_id>/deliver')
+@swag_from("static/swagger-doc/deliver.yml")
+def deliver(swarm_id, drone_id):
+    package_id = str(request.args.get("package_id"))
+    drone = swarm_manager.get_drone(swarm_id, drone_id)
+    success = package_generator.deliver(swarm_id, package_id, drone)
+    return jsonify({'success': success})
+
+
+@app.route('/api/<swarm_id>/print_deliveries')
+@swag_from("static/swagger-doc/print_deliveries.yml")
+def print(swarm_id):
+    success = package_generator.print_deliveries(swarm_id)
+    return jsonify({'success': success})
+
 
 def shutdown_server():
     func = request.environ.get('werkzeug.server.shutdown')

@@ -19,3 +19,6 @@ obj/
 
 # NuGet packages
 packages/
+
+# Package log deliveries
+*_results.txt

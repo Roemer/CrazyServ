@@ -1,0 +1,21 @@
+Tells that package is now at the delivery coordinates and the drone wants to drop it.
+---
+parameters:
+  - name: swarm_id
+    in: path
+    type: string
+    description: The id of the swarm.
+  - name: drone_id
+    in: path
+    type: string
+    description: The id of the drone.
+  - name: package_id
+    in: query
+    type: number
+    format: string
+    description: The id of the package.
+responses:
+  200:
+    description: Success status of the delivery.
+    schema:
+      $ref: /static/swagger-doc/definitions/success.yml

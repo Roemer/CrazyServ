@@ -24,7 +24,7 @@ class DroneState(Enum):
 class Drone:
     """Represents a CrazyFlie drone."""
 
-    def __init__(self, drone_id: str, radio_id: int = 0, channel: int = 80, address: str = "E7E7E7E7E7", data_rate: str = "2M"):
+    def __init__(self, drone_id: str,  arena: Arena, radio_id: int = 0, channel: int = 80, address: str = "E7E7E7E7E7", data_rate: str = "2M"):
         """ Initializes the drone with the given uri."""
 
         # Initialize public variables
@@ -35,6 +35,8 @@ class Drone:
         self.pos_x: float = 0
         self.pos_y: float = 0
         self.pos_z: float = 0
+        self.pitch: float = 0
+        self.roll: float = 0
         self.yaw: float = 0
         self.battery_voltage: float = 0
         self.is_connected: bool = False
@@ -42,10 +44,10 @@ class Drone:
         self.link_uri: str = "radio://" + str(radio_id) + "/" + str(channel) + "/" + data_rate + "/" + address
 
         # Initialize limits
-        self._max_velocity: float = 0.2
-        self._min_duration: float = 1
-        self._max_yaw_rotations: float = 1
-        self._arena: Arena = Arena()
+        self._max_velocity: float = 1.0
+        self._min_duration: float = 1.0
+        self._max_yaw_rotations: float = 1.0
+        self._arena = arena
 
         # Event to asynchronously wait for the connection
         self._connect_event = threading.Event()
@@ -68,11 +70,14 @@ class Drone:
         self._log_config_1.add_variable('kalman.varPY', 'float')
         self._log_config_1.add_variable('kalman.varPZ', 'float')
         self._log_config_1.add_variable('pm.vbat', 'float')
-        self._log_config_2 = LogConfig(name='DroneLog_2', period_in_ms=500)
+        self._log_config_2 = LogConfig(name='DroneLog_2', period_in_ms=100)
         self._log_config_2.add_variable('kalman.stateX', 'float')
         self._log_config_2.add_variable('kalman.stateY', 'float')
         self._log_config_2.add_variable('kalman.stateZ', 'float')
-        self._log_config_2.add_variable('stabilizer.yaw', 'float')
+        self._log_config_3 = LogConfig(name='DroneLog_3', period_in_ms=500)
+        self._log_config_3.add_variable('stabilizer.pitch', 'float')
+        self._log_config_3.add_variable('stabilizer.roll', 'float')
+        self._log_config_3.add_variable('stabilizer.yaw', 'float')
 
     def connect(self, synchronous: bool = False):
         """Connects to the Crazyflie."""
@@ -101,9 +106,11 @@ class Drone:
             "var_x": self.var_x,
             "var_y": self.var_y,
             "var_z": self.var_z,
-            "x": self.pos_x,
-            "y": self.pos_y,
+            "x": self._arena.transform_x_inverse(self.pos_x),
+            "y": self._arena.transform_y_inverse(self.pos_y),
             "z": self.pos_z,
+            "pitch": self.pitch,
+            "roll": self.roll,
             "yaw": self.yaw,
             "status": self.status.name,
             "battery_voltage": self.battery_voltage,
@@ -157,8 +164,8 @@ class Drone:
             time.sleep(duration)
         return {
             "duration": duration,
-            "target_x": x,
-            "target_y": y,
+            "target_x": self._arena.transform_x_inverse(x),
+            "target_y": self._arena.transform_y_inverse(y),
             "target_z": z,
             "target_yaw": yaw,
             "relative": relative
@@ -177,6 +184,7 @@ class Drone:
         # Stop the loggers
         self._log_config_1.stop()
         self._log_config_2.stop()
+        self._log_config_3.stop()
         # Shutdown the rotors
         self._shutdown()
         # Disconnect
@@ -190,15 +198,19 @@ class Drone:
         # Add the logger
         self._cf.log.add_config(self._log_config_1)
         self._cf.log.add_config(self._log_config_2)
+        self._cf.log.add_config(self._log_config_3)
         # This callback will receive the data
         self._log_config_1.data_received_cb.add_callback(self._log_config_1_data)
         self._log_config_2.data_received_cb.add_callback(self._log_config_2_data)
+        self._log_config_3.data_received_cb.add_callback(self._log_config_3_data)
         # This callback will be called on errors
         self._log_config_1.error_cb.add_callback(self._log_config_error)
         self._log_config_2.error_cb.add_callback(self._log_config_error)
+        self._log_config_3.error_cb.add_callback(self._log_config_error)
         # Start the logging
         self._log_config_1.start()
         self._log_config_2.start()
+        self._log_config_3.start()
         # Set the connected event
         self._connect_event.set()
         self.is_connected = True
@@ -240,6 +252,10 @@ class Drone:
         self.pos_x = data['kalman.stateX']
         self.pos_y = data['kalman.stateY']
         self.pos_z = data['kalman.stateZ']
+
+    def _log_config_3_data(self, timestamp, data, logconf):
+        self.pitch = data['stabilizer.pitch']
+        self.roll = data['stabilizer.roll']
         self.yaw = data['stabilizer.yaw']
 
     def _unlock(self):
@@ -282,15 +298,16 @@ class Drone:
 
     def _sanitize_x(self, x: float, relative: bool) -> float:
         target_x = (self.pos_x + x) if relative else x
-        return self._sanitize_number(target_x, self._arena.min_x, self._arena.max_x)
+        sanitized_x = self._sanitize_number(target_x, self._arena.min_x, self._arena.max_x)
+        return self._arena.transform_x(sanitized_x)
 
     def _sanitize_y(self, y: float, relative: bool) -> float:
         target_y = (self.pos_y + y) if relative else y
-        return self._sanitize_number(target_y, self._arena.min_y, self._arena.max_y)
+        sanitized_y = self._sanitize_number(target_y, self._arena.min_y, self._arena.max_y)
+        return self._arena.transform_y(sanitized_y)
 
     def _sanitize_z(self, z: float, relative: bool) -> float:
-        target_z = (self.pos_z + z) if relative else z
-        return self._sanitize_number(target_z, self._arena.min_z, self._arena.max_z)
+        return self._sanitize_number(z, self._arena.min_z, self._arena.max_z)
 
     def _sanitize_number(self, value: float, min_value: float, max_value: float) -> float:
         return min(max(value, min_value), max_value)

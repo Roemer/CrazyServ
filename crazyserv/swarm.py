@@ -1,6 +1,7 @@
 from typing import Dict
 import threading
 from .drone import Drone
+from .arena import Arena
 
 
 class Swarm:
@@ -11,7 +12,7 @@ class Swarm:
         self.drones: Dict[str, Drone] = {}
         self._lock = threading.Lock()
 
-    def add_drone(self, drone_id: str, radio_id: int, channel: int, address: str, data_rate: str) -> bool:
+    def add_drone(self, drone_id: str, arena: Arena, radio_id: int, channel: int, address: str, data_rate: str) -> bool:
         """Adds a new drone with the given id to the swarm.
 
         Arguments:
@@ -22,7 +23,7 @@ class Swarm:
         """
 
         # Try to create and connect to the drone
-        drone = Drone(drone_id, radio_id, channel, address, data_rate)
+        drone = Drone(drone_id, arena, radio_id, channel, address, data_rate)
         drone.connect(synchronous=True)
         # Check if the connection to the drone was successfull
         if (not drone.is_connected):

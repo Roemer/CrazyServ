@@ -1,17 +1,17 @@
-Reset the package generator of a swarm
+Reset the package generator of a swarm.
 ---
 parameters:
   - name: swarm_id
     in: path
     type: string
-    description: ID of the swarm
+    description: The id of the swarm.
   - name: seed
     in: query
     type: number
     format: integer
-    description: Seed for the pseudo-random number generator
+    description: Seed for the pseudo-random number generator.
 responses:
   200:
-    description: Success status of the reset operation
+    description: Success status of the reset operation.
     schema:
       $ref: /static/swagger-doc/success.yml

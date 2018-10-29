@@ -34,10 +34,6 @@ parameters:
     type: number
     format: double
     description: The movement velocity.
-  - name: r
-    in: query
-    type: boolean
-    description: Flag if the target coordinates are relative to current position (as opposed to relative to the arena coordinate system).
 responses:
   404:
     description: Error when drone is not found
